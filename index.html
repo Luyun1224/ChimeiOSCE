@@ -1,1 +1,1110 @@
 
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奇美醫院OSCE測驗評量系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN for easy icon usage -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll from particles */
+        }
+        /* Custom styles for particle background */
+        @keyframes moveParticles {
+            0% { transform: translateY(0); opacity: 0.8; }
+            50% { transform: translateY(-50px); opacity: 0.4; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+            border-radius: 50%;
+            animation: moveParticles 10s linear infinite;
+        }
+        /* Hidden by default, shown by JS */
+        .hidden {
+            display: none !important;
+        }
+        /* Specific hover styles for clarity where inline style object isn't used */
+        .btn-hover-opacity:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="min-h-screen flex flex-col">
+        <!-- Content will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // --- 模擬資料來源 ---
+        const mockStudentData = {
+            candidateId: "A01",
+            studentName: "Lulu",
+            overall: {
+                totalScore: 832,
+                fullMark: 1200,
+                passMark: 840,
+                meanOfCohort: 860,
+                percentile: 47,
+                result: "FAIL",
+                overallAssessment: 3.8 // New: Overall exam assessment 1-5
+            },
+            stations: [
+                {
+                    stationId: 1,
+                    title: "心肺復甦術",
+                    score: 78,
+                    full: 100,
+                    overallAssessment: 3.5, // New: 1-5 scale for this station
+                    cohortMeanStationScore: 75, // New: Simulated cohort average for this station
+                    subItems: [
+                        { item: "評估意識", score: 8, full: 10 },
+                        { item: "呼叫支援", score: 15, full: 20 },
+                        { item: "胸外按壓深度", score: 13, full: 20 }, // Weakness
+                        { item: "胸外按壓回彈", score: 18, full: 20 },
+                        { item: "人工呼吸通氣", score: 10, full: 15 }, // Weakness
+                        { item: "AED操作流程", score: 14, full: 15 },
+                    ],
+                    examinerComments: [
+                        "壓胸節奏略快，深度不足",
+                        "AED 電極貼附位置偏高"
+                    ],
+                    aiAdvice: [
+                        { tip: "使用節拍器練習 100-120/min 節奏，確保深度足夠。", confidence: 4.7 },
+                        { tip: "觀摩學習衛福部 CPR 示範影片，留意 AED 貼附細節。", confidence: 4.5 },
+                        { tip: "加強 BLS 指引閱讀，理解每個步驟的重要性。", confidence: 3.9 }
+                    ],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 2, title: "靜脈注射", score: 85, full: 100, overallAssessment: 4.2, cohortMeanStationScore: 80,
+                    subItems: [{ item: "消毒技術", score: 18, full: 20 }, { item: "針頭固定", score: 17, full: 20 }],
+                    examinerComments: ["消毒徹底，但針頭固定可再加強"],
+                    aiAdvice: [{ tip: "多練習針頭固定手法。", confidence: 4.0 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 3, title: "導尿術", score: 65, full: 100, overallAssessment: 2.8, cohortMeanStationScore: 70,
+                    subItems: [{ item: "無菌操作", score: 12, full: 20 }, { item: "潤滑技巧", score: 10, full: 20 }],
+                    examinerComments: ["無菌區塊打破，潤滑不足導致病人不適"],
+                    aiAdvice: [{ tip: "嚴格遵守無菌原則。", confidence: 4.9 }, { tip: "練習導尿管潤滑技巧。", confidence: 4.2 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 4, title: "傷口換藥", score: 92, full: 100, overallAssessment: 4.8, cohortMeanStationScore: 88,
+                    subItems: [{ item: "評估傷口", score: 19, full: 20 }, { item: "敷料選擇", score: 18, full: 20 }],
+                    examinerComments: ["評估精準，換藥流程順暢"],
+                    aiAdvice: [{ tip: "保持此優異表現。", confidence: 5.0 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 5, title: "病史詢問", score: 70, full: 100, overallAssessment: 3.1, cohortMeanStationScore: 72,
+                    subItems: [{ item: "開放性問題", score: 15, full: 20 }, { item: "病史統整", score: 14, full: 20 }],
+                    examinerComments: ["提問技巧需加強，病史統整條理不清"],
+                    aiAdvice: [{ tip: "練習使用更多開放性問題。", confidence: 4.3 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 6, title: "身體檢查", score: 80, full: 100, overallAssessment: 3.9, cohortMeanStationScore: 78,
+                    subItems: [{ item: "視觸叩聽", score: 16, full: 20 }, { item: "檢查流程", score: 15, full: 20 }],
+                    examinerComments: ["檢查仔細，但流程可更流暢"],
+                    aiAdvice: [{ tip: "熟悉檢查順序，提升流暢度。", confidence: 4.1 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 7, title: "醫病溝通", score: 95, full: 100, overallAssessment: 4.9, cohortMeanStationScore: 90,
+                    subItems: [{ item: "同理心", score: 19, full: 20 }, { item: "解釋病情", score: 19, full: 20 }],
+                    examinerComments: ["溝通能力極佳，病人回饋良好"],
+                    aiAdvice: [{ tip: "您的溝通能力是強項，請繼續保持。", confidence: 5.0 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 8, title: "開立醫囑", score: 75, full: 100, overallAssessment: 3.3, cohortMeanStationScore: 78,
+                    subItems: [{ item: "醫囑完整性", score: 14, full: 20 }, { item: "藥物劑量", score: 15, full: 20 }],
+                    examinerComments: ["醫囑偶有遺漏，藥物劑量計算需更嚴謹"],
+                    aiAdvice: [{ tip: "仔細核對醫囑細項。", confidence: 4.6 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 9, title: "病歷書寫", score: 88, full: 100, overallAssessment: 4.1, cohortMeanStationScore: 85,
+                    subItems: [{ item: "SOAP格式", score: 17, full: 20 }, { item: "內容詳實", score: 18, full: 20 }],
+                    examinerComments: ["病歷書寫清晰，內容符合要求"],
+                    aiAdvice: [{ tip: "保持病歷書寫的嚴謹性。", confidence: 4.5 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 10, title: "急救處置", score: 60, full: 100, overallAssessment: 2.5, cohortMeanStationScore: 68,
+                    subItems: [{ item: "緊急判斷", score: 10, full: 20 }, { item: "SOP執行", score: 10, full: 20 }],
+                    examinerComments: ["緊急情況下判斷遲疑，部分SOP未依循"],
+                    aiAdvice: [{ tip: "多參與急診情境模擬訓練。", confidence: 4.8 }, { tip: "熟悉急救SOP流程。", confidence: 4.7 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 11, title: "影像判讀", score: 72, full: 100, overallAssessment: 3.0, cohortMeanStationScore: 75,
+                    subItems: [{ item: "X光判讀", score: 14, full: 20 }, { item: "CT判讀", score: 14, full: 20 }],
+                    examinerComments: ["X光判讀能力尚可，CT判讀需加強"],
+                    aiAdvice: [{ tip: "多觀摩不同影像案例，提升判讀能力。", confidence: 4.0 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                },
+                {
+                    stationId: 12, title: "醫學倫理", score: 90, full: 100, overallAssessment: 4.5, cohortMeanStationScore: 88,
+                    subItems: [{ item: "病患自主", score: 18, full: 20 }, { item: "知情同意", score: 18, full: 20 }],
+                    examinerComments: ["對醫學倫理有深刻理解"],
+                    aiAdvice: [{ tip: "在倫理議題上表現出色，請持續關心新進展。", confidence: 4.9 }],
+                    reportUrl: "https://www.africau.edu/images/default/sample.pdf"
+                }
+            ],
+            history: [
+                {"date":"2025-01-20","name":"全國 OSCE 模擬考","score":870,"result":"PASS","reportUrl":"https://www.africau.edu/images/default/sample.pdf"},
+                {"date":"2024-12-18","name":"院內模擬 OSCE","score":810,"result":"FAIL","reportUrl":"https://www.africau.edu/images/default/sample.pdf"},
+                {"date":"2024-06-15","name":"第一次模擬考","score":750,"result":"FAIL","reportUrl":"https://www.africau.edu/images/default/sample.pdf"}
+            ]
+        };
+
+        // --- 共用顏色配置 ---
+        const colors = {
+            // 首頁登入選單的主色 (勇士隊深藍)
+            'home-primary-blue': '#1D428A', 
+            'home-soft-background': '#F0F4F8',
+            'home-item-dark-blue': '#1A376B', 
+            'home-item-dark-green': '#4A6D4B', 
+            'home-item-dark-purple': '#6B4D7E', 
+            'home-text-dark': '#333333',    
+            'home-text-light': '#FFFFFF',   
+            'home-accent-gold': '#FFC72C',  
+            'home-accent-gold-hover': '#E0B526', 
+
+            // 考生儀表板的主色 (勇士隊深藍作為儀表板主色)
+            'dashboard-primary': '#1D428A', 
+            'dashboard-secondary': '#E0E8F0',
+            'dashboard-card-bg': '#FFFFFF', 
+            'dashboard-text-dark': '#333333',
+            'dashboard-text-light': '#FFFFFF',
+            'dashboard-accent': '#FFC72C',
+
+            // 分數進度條和評量顏色 (基於 1-5 評量)
+            'assessment-5': '#006400', // 4.5-5.0 (優異)
+            'assessment-4': '#3CB371', // 3.5-4.4 (良好)
+            'assessment-3': '#FFD700', // 2.5-3.4 (中等)
+            'assessment-2': '#FF8C00', // 1.5-2.4 (待改進)
+            'assessment-1': '#DC143C', // 0.0-1.4 (表現差)
+            'fail-color': '#DC143C',     // 總分未通過
+        };
+
+
+        // --- 輔助函數 (共用) ---
+        // 根據 1-5 分的整體評量獲取顏色
+        function getOverallAssessmentColor(score) {
+            if (score >= 4.5) return colors['assessment-5']; 
+            if (score >= 3.5) return colors['assessment-4']; 
+            if (score >= 2.5) return colors['assessment-3']; 
+            if (score >= 1.5) return colors['assessment-2']; 
+            return colors['assessment-1']; 
+        }
+
+        // 根據分數百分比獲取子項目顏色 (用於站內詳解中的進度條)
+        function getStationItemColor(score, full) {
+            const percentage = (score / full) * 100;
+            if (percentage >= 85) return colors['assessment-5'];
+            if (percentage >= 70) return colors['assessment-4'];
+            if (percentage >= 60) return colors['assessment-3'];
+            if (percentage >= 40) return colors['assessment-2'];
+            return colors['assessment-1'];
+        }
+
+        // 根據通過與否獲取顏色 (用於總分結果)
+        function getPassFailColor(result) {
+            return result === 'PASS' ? colors['assessment-5'] : colors['fail-color'];
+        }
+
+        // 計算整體站次分數雷達圖數據 (簡化模擬)
+        function getStationOverallRadarData(stations) {
+            return stations.map(station => ({
+                subject: `Station ${station.stationId}`,
+                '本次成績': station.score,
+                '同屆平均': station.cohortMeanStationScore,
+                fullMark: station.full
+            }));
+        }
+
+        // --- 全局狀態管理 ---
+        let currentPage = 'home'; // 'home', 'student-dashboard', 'examiner-dashboard', 'admin-dashboard'
+        let selectedStation = null; // 用於站內詳解
+        let isSidePanelOpen = false; // 控制側欄開關
+        let activeTab = 'summary'; // student dashboard tab state
+
+
+        // --- 渲染函數 ---
+        function renderApp() {
+            const appContainer = document.getElementById('app-container');
+            appContainer.innerHTML = ''; // Clear previous content
+
+            if (currentPage === 'home') {
+                renderHomePage();
+            } else if (currentPage === 'student-dashboard') {
+                renderStudentDashboard();
+            } else if (currentPage === 'examiner-dashboard') {
+                renderExaminerDashboard();
+            } else if (currentPage === 'admin-dashboard') {
+                renderAdminDashboard();
+            }
+            lucide.createIcons(); // Re-create icons after DOM update
+        }
+
+        function renderHomePage() {
+            const appContainer = document.getElementById('app-container');
+            appContainer.className = 'min-h-screen relative overflow-hidden flex flex-col items-center justify-between p-4';
+            appContainer.style.backgroundColor = colors['home-soft-background'];
+            appContainer.style.fontFamily = 'Noto Sans TC, sans-serif';
+
+            appContainer.innerHTML = `
+                <!-- 微粒子背景效果 -->
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 2px; height: 2px; animation-delay: 0s; animation-duration: 10s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 3px; height: 3px; animation-delay: 1s; animation-duration: 12s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 1px; height: 1px; animation-delay: 2s; animation-duration: 8s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 4px; height: 4px; animation-delay: 3s; animation-duration: 15s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 2px; height: 2px; animation-delay: 4s; animation-duration: 9s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 3px; height: 3px; animation-delay: 5s; animation-duration: 11s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 1px; height: 1px; animation-delay: 6s; animation-duration: 7s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 2px; height: 2px; animation-delay: 7s; animation-duration: 13s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 3px; height: 3px; animation-delay: 8s; animation-duration: 10s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 2px; height: 2px; animation-delay: 2.5s; animation-duration: 9.5s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 1px; height: 1px; animation-delay: 0.5s; animation-duration: 8.5s;"></div>
+                <div class="particle" style="top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; width: 3px; height: 3px; animation-delay: 4.5s; animation-duration: 11.5s;"></div>
+
+                <!-- 內容包裹器，確保內容在粒子上方 -->
+                <div class="flex-grow flex flex-col items-center justify-center w-full relative z-10">
+                    <!-- 網站標題 -->
+                    <h1 class="text-4xl md:text-5xl font-extrabold mb-16 text-center leading-tight" style="color: ${colors['home-primary-blue']};">
+                        奇美醫療財團法人奇美醫院<br class="md:hidden"/>OSCE測驗評分線上系統
+                    </h1>
+                    
+                    <!-- 三個登入項目 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl px-4">
+                        <!-- 考官項目 -->
+                        <div id="examiner-card" class="p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
+                            style="background-color: ${colors['home-item-dark-purple']}; color: ${colors['home-text-light']};">
+                            <div class="p-4 rounded-full bg-white mb-4 shadow-inner">
+                                <i data-lucide="user" width="64" height="64" style="color: ${colors['home-item-dark-purple']};"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-2" style="color: ${colors['home-text-light']};">考官</h2>
+                            <p class="text-lg text-gray-200 text-center">評分與管理考試流程</p>
+                        </div>
+
+                        <!-- 考生項目 -->
+                        <div id="student-card" class="p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
+                            style="background-color: ${colors['home-item-dark-blue']}; color: ${colors['home-text-light']};">
+                            <div class="p-4 rounded-full bg-white mb-4 shadow-inner">
+                                <i data-lucide="graduation-cap" width="64" height="64" style="color: ${colors['home-item-dark-blue']};"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-2" style="color: ${colors['home-text-light']};">考生</h2>
+                            <p class="text-lg text-gray-200 text-center">查看考試結果與回饋</p>
+                        </div>
+
+                        <!-- 管理者項目 -->
+                        <div id="admin-card" class="p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center cursor-pointer transition-transform transform hover:scale-105"
+                            style="background-color: ${colors['home-item-dark-green']}; color: ${colors['home-text-light']};">
+                            <div class="p-4 rounded-full bg-white mb-4 shadow-inner">
+                                <i data-lucide="shield" width="64" height="64" style="color: ${colors['home-item-dark-green']};"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-2" style="color: ${colors['home-text-light']};">管理者</h2>
+                            <p class="text-lg text-gray-200 text-center">系統設定與數據分析</p>
+                        </div>
+                    </div>
+
+                    <!-- 系統特色與優勢 -->
+                    <div class="w-full max-w-5xl mt-16 p-4">
+                        <h3 class="text-2xl font-bold text-center mb-8" style="color: ${colors['home-primary-blue']};">系統特色與優勢</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center" style="background-color: ${colors['home-item-dark-blue']}20;">
+                                <i data-lucide="zap" width="40" height="40" class="mb-3" style="color: ${colors['home-primary-blue']};"></i>
+                                <p class="font-semibold text-lg" style="color: ${colors['home-text-dark']};">高效率評分</p>
+                                <p class="text-base text-gray-700">提升評分效率，節省寶貴時間。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center" style="background-color: ${colors['home-item-dark-green']}20;">
+                                <i data-lucide="bar-chart-2" width="40" height="40" class="mb-3" style="color: ${colors['home-primary-blue']};"></i>
+                                <p class="font-semibold text-lg" style="color: ${colors['home-text-dark']};">數據化分析</p>
+                                <p class="text-base text-gray-700">提供詳盡的評分數據洞察。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center" style="background-color: ${colors['home-item-dark-purple']}20;">
+                                <i data-lucide="activity" width="40" height="40" class="mb-3" style="color: ${colors['home-primary-blue']};"></i>
+                                <p class="font-semibold text-lg" style="color: ${colors['home-text-dark']};">友善使用者介面</p>
+                                <p class="text-base text-gray-700">直觀設計，操作簡單易上手。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center" style="background-color: ${colors['home-item-dark-blue']}20;">
+                                <i data-lucide="shield-check" width="40" height="40" class="mb-3" style="color: ${colors['home-primary-blue']};"></i>
+                                <p class="font-semibold text-lg" style="color: ${colors['home-text-dark']};">安全可靠</p>
+                                <p class="text-base text-gray-700">數據加密，保障資訊安全。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部版權資訊 -->
+                <footer class="w-full text-center py-6 mt-16" style="color: ${colors['home-text-dark']};">
+                    <p class="text-lg font-bold">2025 奇美醫院臨床技能中心</p>
+                </footer>
+            `;
+
+            // Attach event listeners for login cards
+            document.getElementById('examiner-card').onclick = () => showLoginModal('examiner');
+            document.getElementById('student-card').onclick = () => showLoginModal('student');
+            document.getElementById('admin-card').onclick = () => showLoginModal('admin');
+        }
+
+        // --- 登入彈窗邏輯 ---
+        let currentLoginRole = null;
+
+        function showLoginModal(role) {
+            currentLoginRole = role;
+            const roleNameMap = {
+                'examiner': '考官',
+                'student': '考生',
+                'admin': '管理者'
+            };
+            const roleName = roleNameMap[role];
+
+            const loginModalHtml = `
+                <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm" style="background-color: ${colors['home-soft-background']};">
+                        <h2 class="text-2xl font-bold mb-6 text-center" style="color: ${colors['home-primary-blue']};">
+                            ${roleName} 登入
+                        </h2>
+                        <p id="login-error" class="text-red-600 mb-4 text-center font-semibold hidden"></p>
+                        <div class="mb-4">
+                            <label for="username-input" class="block text-gray-700 text-base font-bold mb-2">
+                                帳號:
+                            </label>
+                            <input
+                                type="text"
+                                id="username-input"
+                                class="shadow appearance-none border border-gray-300 rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
+                                placeholder="請輸入帳號"
+                                autocomplete="off"
+                            />
+                        </div>
+                        <div class="mb-6">
+                            <label for="password-input" class="block text-gray-700 text-base font-bold mb-2">
+                                密碼:
+                            </label>
+                            <input
+                                type="password"
+                                id="password-input"
+                                class="shadow appearance-none border border-gray-300 rounded-xl w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
+                                placeholder="請輸入密碼"
+                                autocomplete="off"
+                            />
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <button
+                                id="login-button"
+                                class="py-3 px-6 rounded-full font-bold shadow-md transition-colors duration-200"
+                                style="background-color: ${colors['home-primary-blue']}; color: ${colors['home-text-light']};"
+                            >
+                                登入
+                            </button>
+                            <button
+                                id="cancel-button"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:shadow-outline transition-colors duration-200"
+                            >
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loginModalHtml);
+
+            // Attach event listeners to modal elements
+            document.getElementById('login-button').onclick = handleLogin;
+            document.getElementById('cancel-button').onclick = hideLoginModal;
+        }
+
+        function hideLoginModal() {
+            const modal = document.getElementById('login-modal');
+            if (modal) {
+                modal.remove();
+            }
+            currentLoginRole = null;
+        }
+
+        function handleLogin() {
+            const usernameInput = document.getElementById('username-input').value;
+            const passwordInput = document.getElementById('password-input').value;
+            const loginErrorElement = document.getElementById('login-error');
+
+            let expectedUsername = '';
+            let expectedPassword = '';
+
+            switch (currentLoginRole) {
+                case 'examiner':
+                    expectedUsername = 'B20401';
+                    expectedPassword = 'B20401';
+                    break;
+                case 'student':
+                    expectedUsername = '001';
+                    expectedPassword = '001';
+                    break;
+                case 'admin':
+                    expectedUsername = 'admin';
+                    expectedPassword = 'admin';
+                    break;
+                default:
+                    loginErrorElement.textContent = '無效的角色';
+                    loginErrorElement.classList.remove('hidden');
+                    return;
+            }
+
+            if (usernameInput === expectedUsername && passwordInput === expectedPassword) {
+                loginErrorElement.classList.add('hidden');
+                hideLoginModal();
+                if (currentLoginRole === 'student') {
+                    currentPage = 'student-dashboard';
+                } else if (currentLoginRole === 'examiner') {
+                    currentPage = 'examiner-dashboard';
+                } else if (currentLoginRole === 'admin') {
+                    currentPage = 'admin-dashboard';
+                }
+                renderApp(); // Re-render the app to show the new page
+            } else {
+                loginErrorElement.textContent = '帳號或密碼錯誤，請重新輸入。';
+                loginErrorElement.classList.remove('hidden');
+            }
+        }
+
+        // --- 站內詳解側欄/Modal 組件 ---
+        function renderStationDetailPanel(station) {
+            // 這個函數會被 StudentDashboard 調用
+            // 這裡將模擬 React 的 useState
+            let expandedCommentIndex = null;
+            let expandedAiTipIndex = null;
+
+            const hasWeakness = station.subItems.some(item => (item.score / item.full) < 0.6);
+
+            const panelHtml = `
+                <div id="station-detail-panel" class="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
+                    <div class="bg-white w-full md:w-2/3 lg:w-1/2 h-full overflow-y-auto p-6 shadow-2xl relative" style="background-color: ${colors['dashboard-secondary']}; font-family: 'Noto Sans TC', sans-serif;">
+                        <!-- 關閉按鈕 -->
+                        <button id="close-detail-panel" class="absolute top-4 right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors">
+                            <i data-lucide="x" width="24" height="24" style="color: ${colors['dashboard-text-dark']};"></i>
+                        </button>
+
+                        <h2 class="text-2xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">
+                            ${station.stationId}. ${station.title} - 站內詳解
+                        </h2>
+                        <p class="text-base text-gray-700 mb-4">
+                            得分: <span class="font-bold text-lg" style="color: ${getStationItemColor(station.score, station.full)};">${station.score}</span> / ${station.full} 分 &nbsp; &nbsp;
+                            整體評量: <span class="font-bold text-lg" style="color: ${getOverallAssessmentColor(station.overallAssessment)};">${station.overallAssessment}</span> / 5 分
+                        </p>
+
+                        ${hasWeakness ? `
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 flex items-center rounded-lg" role="alert">
+                            <i data-lucide="alert-triangle" width="20" height="20" class="mr-2 flex-shrink-0"></i>
+                            <p class="text-base font-semibold">弱點警示：此站有子項目分數低於標準，請加強改進！</p>
+                        </div>
+                        ` : ''}
+
+                        <!-- 技能子項目 -->
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">技能子項目得分</h3>
+                            <div class="space-y-3">
+                                ${station.subItems.map((item, index) => `
+                                <div class="bg-white p-3 rounded-lg shadow-sm">
+                                    <p class="text-base text-gray-800 font-semibold">${item.item}: <span style="color: ${getStationItemColor(item.score, item.full)};">${item.score}</span> / ${item.full} 分</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div
+                                            class="h-2 rounded-full transition-all duration-500"
+                                            style="width: ${(item.score / item.full) * 100}%; background-color: ${getStationItemColor(item.score, item.full)};"
+                                        ></div>
+                                    </div>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- 考官文字評語 -->
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">考官文字評語</h3>
+                            <div class="space-y-3">
+                                ${station.examinerComments.map((comment, index) => `
+                                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                                    <div class="flex justify-between items-center cursor-pointer comment-toggle" data-index="${index}">
+                                        <p class="text-base text-gray-800">${comment.substring(0, 30)}${comment.length > 30 ? '...' : ''}</p>
+                                        <i data-lucide="chevron-down" width="20" height="20"></i>
+                                    </div>
+                                    <p class="text-base text-gray-700 mt-2 hidden full-comment">${comment}</p>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- AI 建議 -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">AI 建議</h3>
+                            <div class="space-y-3">
+                                ${station.aiAdvice.map((advice, index) => `
+                                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                                    <div class="flex justify-between items-center cursor-pointer ai-tip-toggle" data-index="${index}">
+                                        <h4 class="text-base font-semibold" style="color: ${colors['dashboard-text-dark']};">${advice.tip.substring(0, 40)}${advice.tip.length > 40 ? '...' : ''}</h4>
+                                        <i data-lucide="chevron-down" width="20" height="20"></i>
+                                    </div>
+                                    <div class="mt-2 text-base text-gray-700 hidden full-ai-tip">
+                                        <p>${advice.tip}</p>
+                                        <p class="text-sm mt-1">可信度: ${Array(5).fill().map((_, i) => `
+                                            <i data-lucide="star" width="16" height="16" class="inline-block mx-0.5" style="fill: ${i < Math.round(advice.confidence) ? colors['dashboard-accent'] : 'none'}; stroke: ${colors['dashboard-accent']};"></i>
+                                        `).join('')}
+                                        </p>
+                                    </div>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', panelHtml);
+            lucide.createIcons(); // Re-create icons for the panel
+
+            // Attach event listeners for close button
+            document.getElementById('close-detail-panel').onclick = hideStationDetailPanel;
+
+            // Attach event listeners for expandable comments
+            document.querySelectorAll('.comment-toggle').forEach(toggle => {
+                toggle.onclick = (event) => {
+                    const index = parseInt(event.currentTarget.dataset.index);
+                    const fullCommentElement = event.currentTarget.nextElementSibling; // The <p> with full comment
+                    const icon = event.currentTarget.querySelector('i');
+
+                    if (fullCommentElement.classList.contains('hidden')) {
+                        fullCommentElement.classList.remove('hidden');
+                        icon.setAttribute('data-lucide', 'chevron-up');
+                    } else {
+                        fullCommentElement.classList.add('hidden');
+                        icon.setAttribute('data-lucide', 'chevron-down');
+                    }
+                    lucide.createIcons(); // Update icon visually
+                };
+            });
+
+            // Attach event listeners for expandable AI tips
+            document.querySelectorAll('.ai-tip-toggle').forEach(toggle => {
+                toggle.onclick = (event) => {
+                    const index = parseInt(event.currentTarget.dataset.index);
+                    const fullAiTipElement = event.currentTarget.nextElementSibling; // The <div> with full AI tip
+                    const icon = event.currentTarget.querySelector('i');
+
+                    if (fullAiTipElement.classList.contains('hidden')) {
+                        fullAiTipElement.classList.remove('hidden');
+                        icon.setAttribute('data-lucide', 'chevron-up');
+                    } else {
+                        fullAiTipElement.classList.add('hidden');
+                        icon.setAttribute('data-lucide', 'chevron-down');
+                    }
+                    lucide.createIcons(); // Update icon visually
+                };
+            });
+        }
+
+        function hideStationDetailPanel() {
+            const panel = document.getElementById('station-detail-panel');
+            if (panel) {
+                panel.remove();
+            }
+            selectedStation = null;
+            isSidePanelOpen = false;
+        }
+
+
+        // --- 考生儀表板組件 ---
+        function renderStudentDashboard() {
+            const appContainer = document.getElementById('app-container');
+            appContainer.className = 'min-h-screen flex flex-col';
+            appContainer.style.backgroundColor = colors['dashboard-secondary'];
+            appContainer.style.fontFamily = 'Noto Sans TC, sans-serif';
+
+            // Calculate historical data for line chart
+            const combinedHistory = [
+                ...mockStudentData.history,
+                {
+                    date: "2025-06-19",
+                    name: "本次 OSCE 模擬考",
+                    score: mockStudentData.overall.totalScore,
+                    result: mockStudentData.overall.result,
+                    reportUrl: mockStudentData.stations[0].reportUrl
+                }
+            ];
+            const lineChartData = combinedHistory.sort((a, b) => new Date(a.date) - new Date(b.date)).map(exam => ({
+                date: exam.date,
+                score: exam.score,
+                name: exam.name,
+                result: exam.result
+            }));
+
+            // Prepare station overall radar data
+            const stationOverallRadarData = getStationOverallRadarData(mockStudentData.stations);
+
+            // Prepare history dropdown options
+            const historyDropdownOptions = combinedHistory.sort((a,b) => new Date(b.date) - new Date(a.date)).map((exam, index) => `
+                <option value="${exam.date}">
+                    ${exam.date} - ${exam.name}
+                </option>
+            `).join('');
+
+
+            appContainer.innerHTML = `
+                <!-- Title Bar -->
+                <div class="bg-white shadow-md p-4 flex items-center justify-between" style="background-color: ${colors['dashboard-primary']};">
+                    <h1 class="text-2xl font-bold" style="color: ${colors['dashboard-text-light']};">
+                        奇美醫院 OSCE 考生儀表板
+                    </h1>
+                    <!-- xxx，你好! 字眼與返回主頁按鈕 -->
+                    <div class="flex items-center space-x-4">
+                        <span class="text-lg font-bold" style="color: ${colors['dashboard-text-light']};">
+                            ${mockStudentData.studentName} (B20401)，你好!
+                        </span>
+                        <button id="return-home-button" class="p-2 rounded-full transition-colors bg-transparent hover:bg-white hover:bg-opacity-10" title="返回首頁">
+                            <i data-lucide="home" width="24" height="24" style="color: ${colors['dashboard-text-light']};"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 主要內容區域 -->
+                <div class="flex-grow p-4 md:p-8 overflow-auto">
+                    <!-- 總覽卡 (Score Summary) -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg mb-8" style="background-color: ${colors['dashboard-card-bg']};">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                            <h2 class="text-2xl font-bold mb-3 md:mb-0" style="color: ${colors['dashboard-primary']};">本次 OSCE 模擬考總覽</h2>
+                            <!-- 曾經考過的日期下拉選單 -->
+                            <select id="history-date-select" class="p-2 border rounded-md text-base"
+                                style="border-color: ${colors['dashboard-primary']}; color: ${colors['dashboard-text-dark']};">
+                                <option value="">選擇歷史考試日期</option>
+                                ${historyDropdownOptions}
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-base md:text-lg">
+                            <div>
+                                <p class="text-gray-700">總分 / 滿分:</p>
+                                <p class="font-bold text-xl" style="color: ${getPassFailColor(mockStudentData.overall.result)};">
+                                    ${mockStudentData.overall.totalScore} / ${mockStudentData.overall.fullMark} 分
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">及格標準:</p>
+                                <p class="font-bold text-xl" style="color: ${colors['dashboard-primary']};">
+                                    ${mockStudentData.overall.passMark} 分
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">通過與否:</p>
+                                <p class="font-bold text-xl" style="color: ${getPassFailColor(mockStudentData.overall.result)};">
+                                    ${mockStudentData.overall.result === 'PASS' ? '通過 (PASS)' : '未通過 (FAIL)'}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">本次整體評量:</p>
+                                <p class="font-bold text-xl" style="color: ${getOverallAssessmentColor(mockStudentData.overall.overallAssessment)};">
+                                    ${mockStudentData.overall.overallAssessment} / 5 分
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">12 站平均分數:</p>
+                                <p class="font-bold text-xl" style="color: ${colors['dashboard-primary']};">
+                                    ${(mockStudentData.stations.reduce((sum, station) => sum + station.score, 0) / mockStudentData.stations.length).toFixed(1)} 分
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">同屆平均分數:</p>
+                                <p class="font-bold text-xl" style="color: ${colors['dashboard-primary']};">
+                                    ${mockStudentData.overall.meanOfCohort} 分
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-gray-700">排名百分位 (%):</p>
+                                <p class="font-bold text-xl" style="color: ${colors['dashboard-primary']};">
+                                    ${mockStudentData.overall.percentile} %
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 站次總覽表 (12 格) / 手機版 2x6 Cards -->
+                    <h2 class="text-2xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">站次總覽</h2>
+                    <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                        ${mockStudentData.stations.map(station => `
+                        <div class="bg-white p-4 rounded-xl shadow-lg cursor-pointer transition-transform transform hover:scale-105 station-card"
+                            data-station-id="${station.stationId}"
+                            style="border-left: 8px solid ${getOverallAssessmentColor(station.overallAssessment)};">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-base text-gray-700 font-semibold">Station ${station.stationId}</p>
+                                <span class="font-bold text-xl" style="color: ${getOverallAssessmentColor(station.overallAssessment)};">
+                                    ${station.overallAssessment} / 5
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold mb-1" style="color: ${colors['dashboard-text-dark']};">${station.title}</h3>
+                            <p class="text-base text-gray-800">得分: ${station.score} / ${station.full}</p>
+                        </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- 手機版 12 站總覽以 2x6 Cards 排列 -->
+                    <div class="grid grid-cols-2 gap-4 md:hidden mb-8">
+                        ${mockStudentData.stations.map(station => `
+                        <div class="bg-white p-4 rounded-xl shadow-lg cursor-pointer transition-transform transform hover:scale-105 station-card"
+                            data-station-id="${station.stationId}"
+                            style="border-left: 8px solid ${getOverallAssessmentColor(station.overallAssessment)};">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-base text-gray-700 font-semibold">Station ${station.stationId}</p>
+                                <span class="font-bold text-xl" style="color: ${getOverallAssessmentColor(station.overallAssessment)};">
+                                    ${station.overallAssessment} / 5
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold mb-1" style="color: ${colors['dashboard-text-dark']};">${station.title}</h3>
+                            <p class="text-base text-gray-800">得分: ${station.score} / ${station.full}</p>
+                        </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Tabs -->
+                    <!-- PC 版 Tabs -->
+                    <div id="pc-tabs" class="hidden md:flex bg-white rounded-xl shadow-lg p-2 mb-8 justify-around" style="background-color: ${colors['dashboard-secondary']};">
+                        <button class="flex-1 py-3 px-4 text-center text-lg font-bold rounded-lg transition-colors tab-button" data-tab="summary" style="color: ${activeTab === 'summary' ? colors['dashboard-primary'] : colors['dashboard-text-dark']}; background-color: ${activeTab === 'summary' ? colors['dashboard-card-bg'] : 'transparent'}; box-shadow: ${activeTab === 'summary' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' : 'none'};">
+                            站次總覽 (12 站)
+                        </button>
+                        <button class="flex-1 py-3 px-4 text-center text-lg font-bold rounded-lg transition-colors tab-button" data-tab="visualizations" style="color: ${activeTab === 'visualizations' ? colors['dashboard-primary'] : colors['dashboard-text-dark']}; background-color: ${activeTab === 'visualizations' ? colors['dashboard-card-bg'] : 'transparent'}; box-shadow: ${activeTab === 'visualizations' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' : 'none'};">
+                            視覺化分析
+                        </button>
+                        <button class="flex-1 py-3 px-4 text-center text-lg font-bold rounded-lg transition-colors tab-button" data-tab="historyList" style="color: ${activeTab === 'historyList' ? colors['dashboard-primary'] : colors['dashboard-text-dark']}; background-color: ${activeTab === 'historyList' ? colors['dashboard-card-bg'] : 'transparent'}; box-shadow: ${activeTab === 'historyList' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' : 'none'};">
+                            歷次考試列表
+                        </button>
+                    </div>
+
+                    <!-- Tab 內容 -->
+                    <div id="tab-content" class="bg-white p-6 rounded-xl shadow-lg" style="min-height: 400px;">
+                        ${renderTabContent(activeTab, lineChartData, stationOverallRadarData)}
+                    </div>
+                </div>
+
+                <!-- Mobile Bottom Navigation (Tabs) -->
+                <div id="mobile-tabs" class="fixed bottom-0 left-0 w-full bg-white shadow-lg md:hidden z-20">
+                    <div class="flex justify-around py-2" style="background-color: ${colors['dashboard-primary']};">
+                        <button class="flex flex-col items-center p-2 rounded-lg transition-colors tab-button" data-tab="summary" style="color: ${activeTab === 'summary' ? colors['dashboard-primary'] : colors['dashboard-text-light']}; background-color: ${activeTab === 'summary' ? colors['dashboard-card-bg'] : 'transparent'};">
+                            <i data-lucide="home" width="20" height="20"></i>
+                            <span class="text-xs mt-1 font-bold">總覽</span>
+                        </button>
+                        <button class="flex flex-col items-center p-2 rounded-lg transition-colors tab-button" data-tab="visualizations" style="color: ${activeTab === 'visualizations' ? colors['dashboard-primary'] : colors['dashboard-text-light']}; background-color: ${activeTab === 'visualizations' ? colors['dashboard-card-bg'] : 'transparent'};">
+                            <i data-lucide="bar-chart-2" width="20" height="20"></i>
+                            <span class="text-xs mt-1 font-bold">圖表</span>
+                        </button>
+                        <button class="flex flex-col items-center p-2 rounded-lg transition-colors tab-button" data-tab="historyList" style="color: ${activeTab === 'historyList' ? colors['dashboard-primary'] : colors['dashboard-text-light']}; background-color: ${activeTab === 'historyList' ? colors['dashboard-card-bg'] : 'transparent'};">
+                            <i data-lucide="trending-up" width="20" height="20"></i>
+                            <span class="text-xs mt-1 font-bold">歷史</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Attach event listeners
+            document.getElementById('return-home-button').onclick = () => {
+                currentPage = 'home';
+                renderApp();
+            };
+
+            document.querySelectorAll('.station-card').forEach(card => {
+                card.onclick = (event) => {
+                    const stationId = parseInt(event.currentTarget.dataset.stationId);
+                    selectedStation = mockStudentData.stations.find(s => s.stationId === stationId);
+                    renderStationDetailPanel(selectedStation);
+                };
+            });
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.onclick = (event) => {
+                    activeTab = event.currentTarget.dataset.tab;
+                    renderApp(); // Re-render to update tab content and styles
+                };
+            });
+            lucide.createIcons(); // Re-create icons after DOM update
+        }
+
+        // --- 站內詳解側欄/Modal 渲染函數 ---
+        function renderStationDetailPanel(station) {
+            const panelContainer = document.createElement('div');
+            panelContainer.id = 'station-detail-panel';
+            panelContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50';
+            panelContainer.innerHTML = `
+                <div class="bg-white w-full md:w-2/3 lg:w-1/2 h-full overflow-y-auto p-6 shadow-2xl relative" style="background-color: ${colors['dashboard-secondary']}; font-family: 'Noto Sans TC, sans-serif';">
+                    <!-- 關閉按鈕 -->
+                    <button id="close-detail-panel" class="absolute top-4 right-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors">
+                        <i data-lucide="x" width="24" height="24" style="color: ${colors['dashboard-text-dark']};"></i>
+                    </button>
+
+                    <h2 class="text-2xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">
+                        ${station.stationId}. ${station.title} - 站內詳解
+                    </h2>
+                    <p class="text-base text-gray-700 mb-4">
+                        得分: <span class="font-bold text-lg" style="color: ${getStationItemColor(station.score, station.full)};">${station.score}</span> / ${station.full} 分 &nbsp; &nbsp;
+                        整體評量: <span class="font-bold text-lg" style="color: ${getOverallAssessmentColor(station.overallAssessment)};">${station.overallAssessment}</span> / 5 分
+                    </p>
+
+                    ${station.subItems.some(item => (item.score / item.full) < 0.6) ? `
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 flex items-center rounded-lg" role="alert">
+                        <i data-lucide="alert-triangle" width="20" height="20" class="mr-2 flex-shrink-0"></i>
+                        <p class="text-base font-semibold">弱點警示：此站有子項目分數低於標準，請加強改進！</p>
+                    </div>
+                    ` : ''}
+
+                    <!-- 技能子項目 -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">技能子項目得分</h3>
+                        <div class="space-y-3">
+                            ${station.subItems.map((item, index) => `
+                            <div class="bg-white p-3 rounded-lg shadow-sm">
+                                <p class="text-base text-gray-800 font-semibold">${item.item}: <span style="color: ${getStationItemColor(item.score, item.full)};">${item.score}</span> / ${item.full} 分</p>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div
+                                        class="h-2 rounded-full transition-all duration-500"
+                                        style="width: ${(item.score / item.full) * 100}%; background-color: ${getStationItemColor(item.score, item.full)};"
+                                    ></div>
+                                </div>
+                            </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 考官文字評語 -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">考官文字評語</h3>
+                        <div class="space-y-3">
+                            ${station.examinerComments.map((comment, index) => `
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                                <div class="flex justify-between items-center cursor-pointer comment-toggle" data-index="${index}">
+                                    <p class="text-base text-gray-800">${comment.substring(0, 30)}${comment.length > 30 ? '...' : ''}</p>
+                                    <i data-lucide="chevron-down" width="20" height="20"></i>
+                                </div>
+                                <p class="text-base text-gray-700 mt-2 hidden full-comment">${comment}</p>
+                            </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- AI 建議 -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-3" style="color: ${colors['dashboard-primary']};">AI 建議</h3>
+                        <div class="space-y-3">
+                            ${station.aiAdvice.map((advice, index) => `
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                                <div class="flex justify-between items-center cursor-pointer ai-tip-toggle" data-index="${index}">
+                                    <h4 class="text-base font-semibold" style="color: ${colors['dashboard-text-dark']};">${advice.tip.substring(0, 40)}${advice.tip.length > 40 ? '...' : ''}</h4>
+                                    <i data-lucide="chevron-down" width="20" height="20"></i>
+                                </div>
+                                <div class="mt-2 text-base text-gray-700 hidden full-ai-tip">
+                                    <p>${advice.tip}</p>
+                                    <p class="text-sm mt-1">可信度: ${Array(5).fill().map((_, i) => `
+                                        <i data-lucide="star" width="16" height="16" class="inline-block mx-0.5" style="fill: ${i < Math.round(advice.confidence) ? colors['dashboard-accent'] : 'none'}; stroke: ${colors['dashboard-accent']};"></i>
+                                    `).join('')}
+                                    </p>
+                                </div>
+                            </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(panelContainer);
+            lucide.createIcons(); // Re-create icons for the panel
+
+            document.getElementById('close-detail-panel').onclick = hideStationDetailPanel;
+
+            document.querySelectorAll('#station-detail-panel .comment-toggle').forEach(toggle => {
+                toggle.onclick = (event) => {
+                    const fullCommentElement = event.currentTarget.nextElementSibling;
+                    const icon = event.currentTarget.querySelector('i');
+                    fullCommentElement.classList.toggle('hidden');
+                    icon.setAttribute('data-lucide', fullCommentElement.classList.contains('hidden') ? 'chevron-down' : 'chevron-up');
+                    lucide.createIcons();
+                };
+            });
+
+            document.querySelectorAll('#station-detail-panel .ai-tip-toggle').forEach(toggle => {
+                toggle.onclick = (event) => {
+                    const fullAiTipElement = event.currentTarget.nextElementSibling;
+                    const icon = event.currentTarget.querySelector('i');
+                    fullAiTipElement.classList.toggle('hidden');
+                    icon.setAttribute('data-lucide', fullAiTipElement.classList.contains('hidden') ? 'chevron-down' : 'chevron-up');
+                    lucide.createIcons();
+                };
+            });
+        }
+
+
+        // --- Tab 內容渲染函數 (為了在 StudentDashboard 內動態更新) ---
+        function renderTabContent(tabName, lineChartData, stationOverallRadarData) {
+            let contentHtml = '';
+            switch (tabName) {
+                case 'summary':
+                    contentHtml = `
+                        <div>
+                            <h2 class="text-xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">請點擊上方站次卡片查看站內詳解</h2>
+                            <p class="text-base text-gray-700">
+                                此區域顯示各站次的簡要資訊。詳細的子項目得分、考官回饋和 AI 建議，請點擊任一站次卡片。
+                            </p>
+                        </div>
+                    `;
+                    break;
+                case 'visualizations':
+                    // In a real application, a charting library like Chart.js or D3.js would be used here
+                    // For this HTML-only example, we'll provide descriptive text for the charts.
+                    contentHtml = `
+                        <div>
+                            <h2 class="text-xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">視覺化分析</h2>
+                            
+                            <h3 class="text-lg font-bold mb-4" style="color: ${colors['dashboard-primary']};">每站考試成績與同梯次平均比較雷達圖</h3>
+                            <div class="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-300 text-gray-600">
+                                <p>雷達圖將顯示本次各站成績 (${stationOverallRadarData.map(d => d['本次成績']).join(', ')}) 與同屆平均 (${stationOverallRadarData.map(d => d['同屆平均']).join(', ')}) 的比較。</p>
+                                <!-- Recharts is React-specific, for HTML you would use libraries like Chart.js or D3.js -->
+                            </div>
+
+                            <h3 class="text-lg font-bold mt-8 mb-4" style="color: ${colors['dashboard-primary']};">成績趨勢折線圖 (最近三次國考/模擬考)</h3>
+                            <div class="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-300 text-gray-600">
+                                <p>折線圖將顯示歷次考試總分趨勢 (${lineChartData.map(d => d.score).join(', ')})。</p>
+                                <!-- Recharts is React-specific, for HTML you would use libraries like Chart.js or D3.js -->
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'historyList':
+                    const historyRows = mockStudentData.history.map((exam, index) => `
+                        <tr class="border-b last:border-b-0">
+                            <td class="py-3 px-4 text-base text-gray-800">${exam.date}</td>
+                            <td class="py-3 px-4 text-base text-gray-800">${exam.name}</td>
+                            <td class="py-3 px-4 text-base font-semibold" style="color: ${getPassFailColor(exam.result)};">${exam.score}</td>
+                            <td class="py-3 px-4 text-base" style="color: ${getPassFailColor(exam.result)};">${exam.result === 'PASS' ? '是' : '否'}</td>
+                            <td class="py-3 px-4 text-center">
+                                ${exam.reportUrl ? `
+                                <button onclick="handleDownload('${exam.reportUrl}')" class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center" title="下載成績單 PDF">
+                                    <i data-lucide="download" width="18" height="18"></i>
+                                </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Add current exam to history list for download
+                    const currentExamRow = `
+                        <tr class="border-b last:border-b-0">
+                            <td class="py-3 px-4 text-base text-gray-800">2025-06-19</td>
+                            <td class="py-3 px-4 text-base text-gray-800">本次 OSCE 模擬考總成績</td>
+                            <td class="py-3 px-4 text-base font-semibold" style="color: ${getPassFailColor(mockStudentData.overall.result)};">${mockStudentData.overall.totalScore}</td>
+                            <td class="py-3 px-4 text-base" style="color: ${getPassFailColor(mockStudentData.overall.result)};">${mockStudentData.overall.result === 'PASS' ? '是' : '否'}</td>
+                            <td class="py-3 px-4 text-center">
+                                ${mockStudentData.stations[0].reportUrl ? `
+                                <button onclick="handleDownload('${mockStudentData.stations[0].reportUrl}')" class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center" title="下載本次成績單 PDF">
+                                    <i data-lucide="download" width="18" height="18"></i>
+                                </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+
+                    contentHtml = `
+                        <div>
+                            <h2 class="text-xl font-bold mb-4" style="color: ${colors['dashboard-primary']};">歷次考試列表</h2>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                                    <thead>
+                                        <tr>
+                                            <th class="py-3 px-4 border-b text-left text-base font-bold text-gray-700">日期</th>
+                                            <th class="py-3 px-4 border-b text-left text-base font-bold text-gray-700">考試名稱</th>
+                                            <th class="py-3 px-4 border-b text-left text-base font-bold text-gray-700">總分</th>
+                                            <th class="py-3 px-4 border-b text-left text-base font-bold text-gray-700">通過</th>
+                                            <th class="py-3 px-4 border-b text-center text-base font-bold text-gray-700">下載</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${historyRows}
+                                        ${currentExamRow}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                default:
+                    contentHtml = `<p>選擇一個選項查看內容。</p>`;
+            }
+            return contentHtml;
+        }
+
+
+        // --- 考官儀表板 (簡化示意) ---
+        function renderExaminerDashboard() {
+            const appContainer = document.getElementById('app-container');
+            appContainer.className = 'min-h-screen flex flex-col items-center justify-center p-4';
+            appContainer.style.backgroundColor = colors['home-item-dark-purple'];
+            appContainer.style.fontFamily = 'Noto Sans TC, sans-serif';
+
+            appContainer.innerHTML = `
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center" style="background-color: ${colors['home-soft-background']};">
+                    <h1 class="text-3xl font-extrabold mb-8" style="color: ${colors['home-primary-blue']};">考官儀表板</h1>
+                    <p class="text-xl mb-6" style="color: ${colors['home-text-dark']};">此為考官儀表板示意頁面。</p>
+                    <button id="examiner-return-home" class="py-3 px-6 rounded-full font-bold shadow-md transition-colors bg-blue-800 text-white hover:bg-blue-900">
+                        返回首頁
+                    </button>
+                </div>
+            `;
+            document.getElementById('examiner-return-home').onclick = () => {
+                currentPage = 'home';
+                renderApp();
+            };
+        }
+
+        // --- 管理者儀表板 (簡化示意) ---
+        function renderAdminDashboard() {
+            const appContainer = document.getElementById('app-container');
+            appContainer.className = 'min-h-screen flex flex-col items-center justify-center p-4';
+            appContainer.style.backgroundColor = colors['home-item-dark-green'];
+            appContainer.style.fontFamily = 'Noto Sans TC, sans-serif';
+
+            appContainer.innerHTML = `
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center" style="background-color: ${colors['home-soft-background']};">
+                    <h1 class="text-3xl font-extrabold mb-8" style="color: ${colors['home-primary-blue']};">管理者儀表板</h1>
+                    <p class="text-xl mb-6" style="color: ${colors['home-text-dark']};">此為管理者儀表板示意頁面。</p>
+                    <button id="admin-return-home" class="py-3 px-6 rounded-full font-bold shadow-md transition-colors bg-blue-800 text-white hover:bg-blue-900">
+                        返回首頁
+                    </button>
+                </div>
+            `;
+            document.getElementById('admin-return-home').onclick = () => {
+                currentPage = 'home';
+                renderApp();
+            };
+        }
+        
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', renderApp);
+
+        // Global functions for download (called directly from HTML onclick)
+        window.handleDownload = function(url) {
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                alert('無可下載的報告'); // Using alert as per previous requirement
+            }
+        };
+
+    </script>
+</body>
+</html>
+
