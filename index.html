@@ -5,136 +5,191 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>奇美醫院 OSCE 測驗評量系統</title>
 
-  <!-- TailwindCSS CDN -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body{font-family:"Noto Sans TC",sans-serif;background:#F0F4F8;margin:0}
-    /* 背景粒子 (純裝飾，可拿掉) */
-    @keyframes fly{0%{transform:translateY(0);opacity:.8}50%{transform:translateY(-60px);opacity:.4}100%{transform:translateY(-120px);opacity:0}}
-    .particle{position:absolute;border-radius:50%;background:#fff6;animation:fly 12s linear infinite}
+    body { font-family: 'Noto Sans TC', sans-serif; margin:0; overflow-x:hidden; }
+    /* 粒子動畫 */
+    @keyframes moveParticles {
+      0%{transform:translateY(0);opacity:.8}
+      50%{transform:translateY(-50px);opacity:.4}
+      100%{transform:translateY(-100px);opacity:0}
+    }
+    .particle{
+      position:absolute;border-radius:50%;background:rgba(255,255,255,.6);
+      animation:moveParticles 10s linear infinite;
+    }
+    .hidden{display:none!important}
   </style>
 </head>
-<body class="relative overflow-hidden min-h-screen flex flex-col items-center">
+<body>
+  <div id="app-container" class="min-h-screen flex flex-col"></div>
 
-  <!-- 粒子背景 (隨機幾顆) -->
   <script>
-    for(let i=0;i<15;i++){
-      const p=document.createElement('div');
-      p.className='particle';
-      p.style.cssText=`width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;
-        top:${Math.random()*100}%;left:${Math.random()*100}%;
-        animation-delay:${Math.random()*8}s;`;
-      document.body.appendChild(p);
+  /* ---------- 1. 顏色設定 ---------- */
+  const colors = {
+    'home-primary-blue':'#1D428A',
+    'home-soft-background':'#F0F4F8',
+    'home-item-dark-blue':'#1A376B',
+    'home-item-dark-green':'#4A6D4B',
+    'home-item-dark-purple':'#6B4D7E',
+    'home-text-dark':'#333',
+    'home-text-light':'#FFF',
+  };
+
+  /* ---------- 2. 跳頁對照 ---------- */
+  /* 之後只要新增頁面，這裡加一行即可 */
+  const credentials = {
+    examiner:{ user:'B20401', pass:'B20401', page:'examiner.html' },
+    student :{ user:'001',    pass:'001',    page:'student.html'  },
+    admin   :{ user:'admin',  pass:'admin',  page:'admin.html'    },
+  };
+
+  let currentRole = null;   // 目前點了哪張卡
+  document.addEventListener('DOMContentLoaded', renderHomePage);
+
+  /* ---------- 3. 首頁 ---------- */
+  function renderHomePage(){
+    const app = document.getElementById('app-container');
+    app.className = 'min-h-screen relative overflow-hidden flex flex-col items-center justify-between p-4';
+    app.style.backgroundColor = colors['home-soft-background'];
+
+    /* 粒子隨機塞 10~12 顆 */
+    let particles = '';
+    for(let i=0;i<12;i++){
+      particles += `<div class="particle"
+        style="top:${Math.random()*100}%;left:${Math.random()*100}%;
+        width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;
+        animation-delay:${Math.random()*6}s;animation-duration:${8+Math.random()*6}s;">
+      </div>`;
     }
-  </script>
 
-  <!-- 標題 -->
-  <h1 class="text-3xl md:text-5xl font-extrabold text-center mt-16 mb-20 text-blue-900 leading-tight">
-    奇美醫療財團法人奇美醫院<br class="md:hidden">OSCE 測驗評分線上系統
-  </h1>
+    app.innerHTML = `
+      ${particles}
 
-  <!-- 三大入口 -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-5xl px-6 mb-24">
-    <!-- 考官 -->
-    <button id="examiner-card" class="group p-10 rounded-2xl shadow-xl bg-purple-700 text-white
-      flex flex-col items-center hover:scale-105 transition">
-      <i data-lucide="user" class="w-14 h-14 mb-6"></i>
-      <span class="text-3xl font-bold mb-2">考官</span>
-      <span class="opacity-80">評分與管理考試流程</span>
-    </button>
+      <!-- 內容 -->
+      <div class="flex-grow flex flex-col items-center justify-center w-full relative z-10">
 
-    <!-- 考生 -->
-    <button id="student-card" class="group p-10 rounded-2xl shadow-xl bg-blue-800 text-white
-      flex flex-col items-center hover:scale-105 transition">
-      <i data-lucide="graduation-cap" class="w-14 h-14 mb-6"></i>
-      <span class="text-3xl font-bold mb-2">考生</span>
-      <span class="opacity-80">查看考試結果與回饋</span>
-    </button>
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-16 text-center leading-tight"
+            style="color:${colors['home-primary-blue']}">
+          奇美醫療財團法人奇美醫院<br class="md:hidden"/>OSCE測驗評分線上系統
+        </h1>
 
-    <!-- 管理者 -->
-    <button id="admin-card" class="group p-10 rounded-2xl shadow-xl bg-green-700 text-white
-      flex flex-col items-center hover:scale-105 transition">
-      <i data-lucide="shield" class="w-14 h-14 mb-6"></i>
-      <span class="text-3xl font-bold mb-2">管理者</span>
-      <span class="opacity-80">系統設定與數據分析</span>
-    </button>
-  </div>
+        <!-- 三張登入卡 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl px-4">
 
-  <!-- 版權 -->
-  <footer class="w-full text-center py-6 text-gray-600">
-    © 2025 奇美醫院臨床技能中心
-  </footer>
+          ${cardHTML('examiner','考官','user',colors['home-item-dark-purple'],'評分與管理考試流程')}
+          ${cardHTML('student','考生','graduation-cap',colors['home-item-dark-blue'],'查看考試結果與回饋')}
+          ${cardHTML('admin','管理者','shield',colors['home-item-dark-green'],'系統設定與數據分析')}
+        </div>
 
-  <!-- ===== 登入 Modal (JS 動態插入) ===== -->
-  <script>
-    lucide.createIcons();          // 第一次載入 icon
+        <!-- 系統特色與優勢 -->
+        <div class="w-full max-w-5xl mt-16 p-4">
+          <h3 class="text-2xl font-bold text-center mb-8"
+              style="color:${colors['home-primary-blue']}">系統特色與優勢</h3>
 
-    const roleName = {examiner:'考官',student:'考生',admin:'管理者'};
-    const credentials = {
-      examiner:{u:'B20401', p:'B20401', page:'examiner.html'},
-      student :{u:'001',    p:'001',    page:'student.html' },
-      admin   :{u:'admin',  p:'admin',  page:'admin.html'   }
-    };
-
-    // 監聽三個入口
-    document.getElementById('examiner-card').onclick = ()=>showLogin('examiner');
-    document.getElementById('student-card'  ).onclick = ()=>showLogin('student');
-    document.getElementById('admin-card'    ).onclick = ()=>showLogin('admin');
-
-    function showLogin(role){
-      // 建立 modal HTML
-      const modal=document.createElement('div');
-      modal.id='login-modal';
-      modal.className='fixed inset-0 bg-black/50 flex items-center justify-center z-50';
-      modal.innerHTML=`
-        <div class="bg-white rounded-2xl p-8 w-[90%] max-w-sm shadow-2xl">
-          <h2 class="text-2xl font-bold mb-6 text-center text-blue-800">${roleName[role]} 登入</h2>
-
-          <label class="block mb-4">
-            <span class="block mb-2 font-semibold">帳號</span>
-            <input id="login-user" class="w-full border rounded-lg px-4 py-2" placeholder="輸入帳號">
-          </label>
-
-          <label class="block mb-6">
-            <span class="block mb-2 font-semibold">密碼</span>
-            <input id="login-pass" type="password" class="w-full border rounded-lg px-4 py-2" placeholder="輸入密碼">
-          </label>
-
-          <p id="login-error" class="text-red-600 text-center font-bold mb-4 hidden"></p>
-
-          <div class="flex justify-between">
-            <button id="login-ok"   class="px-6 py-2 rounded-full text-white font-bold bg-blue-800 hover:bg-blue-900">登入</button>
-            <button id="login-cancel" class="px-6 py-2 rounded-full font-bold bg-gray-400 hover:bg-gray-500 text-white">取消</button>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+            ${featureCard('zap','高效率評分','提升評分效率，節省寶貴時間。')}
+            ${featureCard('bar-chart-2','數據化分析','提供詳盡的評分數據洞察。')}
+            ${featureCard('activity','友善使用者介面','直觀設計，操作簡單易上手。')}
+            ${featureCard('shield-check','安全可靠','數據加密，保障資訊安全。')}
           </div>
-        </div>`;
-      document.body.appendChild(modal);
-      lucide.createIcons();        // modal 內 icon 重新渲染
+        </div>
+      </div>
 
-      // 事件
-      document.getElementById('login-cancel').onclick = ()=>modal.remove();
-      document.getElementById('login-ok').onclick = ()=>checkLogin(role);
-      document.getElementById('login-pass').addEventListener('keydown',e=>{
-        if(e.key==='Enter') checkLogin(role);
-      });
+      <footer class="w-full text-center py-6 mt-16" style="color:${colors['home-text-dark']}">
+        <p class="text-lg font-bold">2025 奇美醫院臨床技能中心</p>
+      </footer>
+    `;
+
+    /* 卡片點擊 → 開登入框 */
+    ['examiner','student','admin'].forEach(role=>{
+      document.getElementById(`${role}-card`).onclick = ()=>showLoginModal(role);
+    });
+    lucide.createIcons();
+  }
+
+  /* 卡片模板 */
+  function cardHTML(id,title,icon,bg,desc){
+    return `
+      <div id="${id}-card"
+           class="p-8 rounded-2xl shadow-xl flex flex-col items-center cursor-pointer transition-transform hover:scale-105"
+           style="background:${bg};color:${colors['home-text-light']}">
+        <div class="p-4 rounded-full bg-white mb-4 shadow-inner">
+          <i data-lucide="${icon}" width="64" height="64" style="color:${bg}"></i>
+        </div>
+        <h2 class="text-3xl font-bold mb-2">${title}</h2>
+        <p class="text-lg text-gray-200 text-center">${desc}</p>
+      </div>`;
+  }
+
+  /* 特色卡模板 */
+  function featureCard(icon,title,desc){
+    return `
+      <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center"
+           style="background-color:${colors['home-item-dark-blue']}20">
+        <i data-lucide="${icon}" width="40" height="40" class="mb-3"
+           style="color:${colors['home-primary-blue']}"></i>
+        <p class="font-semibold text-lg" style="color:${colors['home-text-dark']}">${title}</p>
+        <p class="text-base text-gray-700">${desc}</p>
+      </div>`;
+  }
+
+  /* ---------- 4. 登入彈窗 ---------- */
+  function showLoginModal(role){
+    currentRole = role;
+    const roleName = {examiner:'考官',student:'考生',admin:'管理者'}[role];
+
+    const modal = document.createElement('div');
+    modal.id = 'login-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm"
+           style="background:${colors['home-soft-background']}">
+        <h2 class="text-2xl font-bold mb-6 text-center"
+            style="color:${colors['home-primary-blue']}">${roleName} 登入</h2>
+
+        <p id="login-error" class="text-red-600 mb-4 text-center font-semibold hidden"></p>
+
+        <label class="block text-gray-700 font-bold mb-1">帳號：</label>
+        <input id="login-user" class="w-full mb-4 p-3 border rounded-xl" placeholder="請輸入帳號" />
+
+        <label class="block text-gray-700 font-bold mb-1">密碼：</label>
+        <input id="login-pass" type="password" class="w-full mb-6 p-3 border rounded-xl" placeholder="請輸入密碼" />
+
+        <div class="flex justify-between">
+          <button id="login-btn"  class="py-3 px-6 rounded-full font-bold"
+                  style="background:${colors['home-primary-blue']};color:#fff">登入</button>
+          <button id="cancel-btn" class="py-3 px-6 rounded-full font-bold bg-gray-500 text-white">取消</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    document.getElementById('login-btn').onclick  = handleLogin;
+    document.getElementById('cancel-btn').onclick = ()=>modal.remove();
+    lucide.createIcons();
+  }
+
+  /* ---------- 5. 登入驗證 & 直接換頁 ---------- */
+  function handleLogin(){
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    const err  = document.getElementById('login-error');
+    const {user:U,pass:P,page} = credentials[currentRole];
+
+    if(user===U && pass===P){
+      err.classList.add('hidden');
+      /* 關彈窗再跳轉 */
+      document.getElementById('login-modal').remove();
+      location.href = page;            // ← 直接換檔案
+    }else{
+      err.textContent = '帳號或密碼錯誤，請重新輸入！';
+      err.classList.remove('hidden');
     }
-
-    function checkLogin(role){
-      const u=document.getElementById('login-user').value.trim();
-      const p=document.getElementById('login-pass').value.trim();
-      const err=document.getElementById('login-error');
-      const {u:eu,p:ep,page}=credentials[role];
-
-      if(u===eu && p===ep){
-        // 正確 → 直接跳轉
-        window.location.href = page;
-      }else{
-        err.textContent='帳號或密碼錯誤';
-        err.classList.remove('hidden');
-      }
-    }
+  }
   </script>
 </body>
 </html>
