@@ -38,6 +38,21 @@
         .status-completed { background-color: #dcfce7; color: #166534; }
         .status-inprogress { background-color: #fef9c3; color: #854d0e; }
         .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+        
+        /* New Statuses for Case Management */
+        .status-active { background-color: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
+        .status-draft { background-color: #fef3c7; color: #d97706; border: 1px solid #d97706;}
+        .status-archived { background-color: #e5e7eb; color: #4b5563; border: 1px solid #4b5563;}
+
+        .action-icon {
+            color: #6b7280;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .action-icon:hover {
+            color: #111827;
+        }
+
     </style>
 </head>
 <body class="bg-slate-100">
@@ -135,10 +150,10 @@
                         <table class="w-full text-left">
                             <thead class="text-slate-500 text-sm border-b">
                                 <tr>
-                                    <th class="py-2">考試名稱</th>
-                                    <th class="py-2">日期</th>
-                                    <th class="py-2 text-center">狀態</th>
-                                    <th class="py-2 text-center">操作</th>
+                                    <th class="py-2 font-normal">考試名稱</th>
+                                    <th class="py-2 font-normal">日期</th>
+                                    <th class="py-2 font-normal text-center">狀態</th>
+                                    <th class="py-2 font-normal text-center">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -164,32 +179,115 @@
                         </table>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-md">
-  <h3 class="text-xl font-semibold text-slate-700 mb-4">快速入口</h3>
-  <div class="space-y-4">
-    <!-- 建立新考試 -->
-    <button 
-      onclick="window.open('https://luyun1224.github.io/ChimeiOSCE/exam-form.html', '_blank')" 
-      class="w-full bg-green-600 text-white font-semibold p-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
-      <i class="fas fa-plus mr-2"></i> 建立新考試
-    </button>
-
-    <!-- 新增教案 -->
-    <button 
-      onclick="window.open('https://luyun1224.github.io/ChimeiOSCE/admin_plans.html', '_blank')" 
-      class="w-full bg-slate-200 text-slate-800 font-semibold p-3 rounded-lg hover:bg-slate-300 transition-colors flex items-center justify-center">
-      <i class="fas fa-file-circle-plus mr-2"></i> 新增教案
-    </button>
-  </div>
-</div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-4">快速入口</h3>
+                        <div class="space-y-4">
+                            <button class="w-full bg-green-600 text-white font-semibold p-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                                <i class="fas fa-plus mr-2"></i> 建立新考試
+                            </button>
+                             <button class="w-full bg-slate-200 text-slate-800 font-semibold p-3 rounded-lg hover:bg-slate-300 transition-colors flex items-center justify-center">
+                                <i class="fas fa-file-circle-plus mr-2"></i> 新增教案
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
             </section>
 
-            <!-- Other Pages (Initially Hidden) -->
+            <!-- Case Management Page -->
             <section id="cases" class="content-section">
-                 <h2 class="text-3xl font-bold text-slate-800">教案管理</h2>
-                 <p class="text-slate-500 mt-1">在這裡建立、編輯與管理所有的OSCE教案與評分標準。</p>
-                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <p class="text-center text-slate-500">教案管理介面內容... (包含教案列表、搜尋、新增按鈕等)</p>
+                <h2 class="text-3xl font-bold text-slate-800">教案管理系統</h2>
+                <p class="text-slate-500 mt-1">管理與瀏覽所有臨床技能教案</p>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-8">
+                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">內科</p>
+                        <p class="text-2xl font-bold text-blue-600 mt-1">35</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">外科</p>
+                        <p class="text-2xl font-bold text-red-600 mt-1">28</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">婦科</p>
+                        <p class="text-2xl font-bold text-pink-500 mt-1">15</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">兒科</p>
+                        <p class="text-2xl font-bold text-yellow-500 mt-1">22</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">急診科</p>
+                        <p class="text-2xl font-bold text-purple-600 mt-1">18</p>
+                    </div>
+                     <div class="bg-white p-4 rounded-xl shadow-md text-center">
+                        <p class="text-slate-500 text-sm font-semibold">其他</p>
+                        <p class="text-2xl font-bold text-gray-600 mt-1">10</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                        <div class="relative w-full md:w-1/3">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="搜尋教案名稱、科別、建立者..." class="w-full border border-slate-300 rounded-lg py-2 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <a href="https://luyun1224.github.io/ChimeiOSCE/admin_plans.html#" target="_blank" rel="noopener noreferrer" class="w-full md:w-auto mt-4 md:mt-0 bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                            <i class="fas fa-plus mr-2"></i> 新增教案
+                        </a>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="text-slate-500 text-sm border-b bg-slate-50">
+                                <tr>
+                                    <th class="p-4 font-normal">教案名稱</th>
+                                    <th class="p-4 font-normal">適用科別</th>
+                                    <th class="p-4 font-normal">建立者</th>
+                                    <th class="p-4 font-normal">最後修改時間</th>
+                                    <th class="p-4 font-normal text-center">狀態</th>
+                                    <th class="p-4 font-normal text-center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4">標準化病人溝通技巧</td>
+                                    <td class="p-4">全科</td>
+                                    <td class="p-4">王醫師</td>
+                                    <td class="p-4">2025-06-23 14:30</td>
+                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-active"><i class="fas fa-circle fa-xs mr-2"></i>啟用中</span></td>
+                                    <td class="p-4 text-center space-x-4">
+                                        <i class="fas fa-pen action-icon" title="編輯"></i>
+                                        <i class="fas fa-trash action-icon" title="刪除"></i>
+                                        <i class="fas fa-copy action-icon" title="複製"></i>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4">腹部理學檢查流程</td>
+                                    <td class="p-4">內科</td>
+                                    <td class="p-4">張教授</td>
+                                    <td class="p-4">2025-06-20 09:15</td>
+                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-active"><i class="fas fa-circle fa-xs mr-2"></i>啟用中</span></td>
+                                    <td class="p-4 text-center space-x-4">
+                                        <i class="fas fa-pen action-icon" title="編輯"></i>
+                                        <i class="fas fa-trash action-icon" title="刪除"></i>
+                                        <i class="fas fa-copy action-icon" title="複製"></i>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-between items-center mt-6">
+                        <p class="text-sm text-slate-500">顯示 1-2 / 128</p>
+                        <div class="flex items-center space-x-1">
+                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">上一頁</a>
+                            <a href="#" class="px-3 py-1 border rounded-md bg-green-600 text-white">1</a>
+                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">2</a>
+                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">3</a>
+                            <span class="px-3 py-1">...</span>
+                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">26</a>
+                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">下一頁</a>
+                        </div>
+                    </div>
                 </div>
             </section>
             <section id="users" class="content-section">
@@ -249,10 +347,7 @@
                 });
             });
 
-            // Removed Chart.js initialization code as requested
-
         });
     </script>
 </body>
 </html>
-
