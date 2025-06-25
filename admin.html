@@ -90,6 +90,7 @@
                     <img src="https://placehold.co/40x40/dcfce7/166534?text=A" class="rounded-full" alt="管理者頭像">
                     <div class="ml-3">
                         <p class="font-semibold">管理者</p>
+                        <!-- The logout link below can be pointed to your homepage -->
                         <a href="#" class="text-xs text-green-300 hover:text-white">登出</a>
                     </div>
                 </div>
@@ -143,9 +144,9 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions & Recent Exams -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+                <!-- Recent Exams -->
+                <div class="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-8">
+                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-md">
                         <h3 class="text-xl font-semibold text-slate-700 mb-4">近期考試列表</h3>
                         <table class="w-full text-left">
                             <thead class="text-slate-500 text-sm border-b">
@@ -177,17 +178,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md">
-                        <h3 class="text-xl font-semibold text-slate-700 mb-4">快速入口</h3>
-                        <div class="space-y-4">
-                            <button class="w-full bg-green-600 text-white font-semibold p-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
-                                <i class="fas fa-plus mr-2"></i> 建立新考試
-                            </button>
-                             <button class="w-full bg-slate-200 text-slate-800 font-semibold p-3 rounded-lg hover:bg-slate-300 transition-colors flex items-center justify-center">
-                                <i class="fas fa-file-circle-plus mr-2"></i> 新增教案
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -229,11 +219,11 @@
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                         <div class="relative w-full md:w-1/3">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" placeholder="搜尋教案名稱、科別、建立者..." class="w-full border border-slate-300 rounded-lg py-2 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <input type="text" id="caseSearchInput" placeholder="搜尋教案名稱、科別、建立者..." class="w-full border border-slate-300 rounded-lg py-2 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </div>
-                        <a href="https://luyun1224.github.io/ChimeiOSCE/admin_plans.html#" target="_blank" rel="noopener noreferrer" class="w-full md:w-auto mt-4 md:mt-0 bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                        <button id="addCaseBtn" class="w-full md:w-auto mt-4 md:mt-0 bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
                             <i class="fas fa-plus mr-2"></i> 新增教案
-                        </a>
+                        </button>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -248,8 +238,8 @@
                                     <th class="p-4 font-normal text-center">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y">
-                                <tr class="hover:bg-slate-50">
+                            <tbody id="caseTableBody" class="divide-y">
+                                <tr class="case-row" data-search-term="標準化病人溝通技巧 全科 王醫師">
                                     <td class="p-4">標準化病人溝通技巧</td>
                                     <td class="p-4">全科</td>
                                     <td class="p-4">王醫師</td>
@@ -261,7 +251,7 @@
                                         <i class="fas fa-copy action-icon" title="複製"></i>
                                     </td>
                                 </tr>
-                                <tr class="hover:bg-slate-50">
+                                <tr class="case-row" data-search-term="腹部理學檢查流程 內科 張教授">
                                     <td class="p-4">腹部理學檢查流程</td>
                                     <td class="p-4">內科</td>
                                     <td class="p-4">張教授</td>
@@ -273,11 +263,23 @@
                                         <i class="fas fa-copy action-icon" title="複製"></i>
                                     </td>
                                 </tr>
+                                 <tr class="case-row" data-search-term="手術無菌操作技術評核 外科 陳主任">
+                                    <td class="p-4">手術無菌操作技術評核</td>
+                                    <td class="p-4">外科</td>
+                                    <td class="p-4">陳主任</td>
+                                    <td class="p-4">2025-06-18 17:55</td>
+                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-draft"><i class="fas fa-circle fa-xs mr-2"></i>草稿</span></td>
+                                    <td class="p-4 text-center space-x-4">
+                                        <i class="fas fa-pen action-icon" title="編輯"></i>
+                                        <i class="fas fa-trash action-icon" title="刪除"></i>
+                                        <i class="fas fa-copy action-icon" title="複製"></i>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="flex justify-between items-center mt-6">
-                        <p class="text-sm text-slate-500">顯示 1-2 / 128</p>
+                        <p class="text-sm text-slate-500">顯示 1-3 / 128</p>
                         <div class="flex items-center space-x-1">
                             <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">上一頁</a>
                             <a href="#" class="px-3 py-1 border rounded-md bg-green-600 text-white">1</a>
@@ -347,6 +349,33 @@
                 });
             });
 
+            // --- Case Management Search Logic ---
+            const searchInput = document.getElementById('caseSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const caseRows = document.querySelectorAll('#caseTableBody .case-row');
+                    
+                    caseRows.forEach(row => {
+                        const rowData = row.getAttribute('data-search-term').toLowerCase();
+                        if (rowData.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // --- Add Case Button Logic ---
+            const addCaseBtn = document.getElementById('addCaseBtn');
+            if(addCaseBtn) {
+                addCaseBtn.addEventListener('click', function() {
+                    // You can add your navigation logic here, for example:
+                    // window.location.href = 'YOUR_LINK_HERE';
+                    alert('將前往新增教案頁面 (此處可加入連結)');
+                });
+            }
         });
     </script>
 </body>
