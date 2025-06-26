@@ -81,6 +81,9 @@
                 <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="scores">
                     <i class="fas fa-chart-line w-6 text-center"></i><span class="ml-4">成績與分析</span>
                 </a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="announcements">
+                    <i class="fas fa-bullhorn w-6 text-center"></i><span class="ml-4">公告/會議</span>
+                </a>
                  <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="settings">
                     <i class="fas fa-cog w-6 text-center"></i><span class="ml-4">系統設定</span>
                 </a>
@@ -313,7 +316,30 @@
                     <p class="text-center text-slate-500">成績查詢與分析介面內容... (包含考生搜尋、成績報告、視覺化圖表等)</p>
                 </div>
             </section>
-             <section id="settings" class="content-section">
+            <section id="announcements" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-800">公告與會議管理</h2>
+                <p class="text-slate-500 mt-1">維護首頁顯示的公告與會議時程。</p>
+
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">新增公告</h3>
+                    <div class="flex">
+                        <input id="newAnnText" type="text" class="flex-grow border rounded-md p-2 mr-2" placeholder="輸入公告內容">
+                        <button id="addAnnBtn" class="bg-green-600 text-white px-4 py-2 rounded-md">新增</button>
+                    </div>
+                    <div id="annList" class="mt-4 space-y-1"></div>
+                </div>
+
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">新增會議</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <input id="newMeetTitle" type="text" class="border rounded-md p-2" placeholder="會議名稱">
+                        <input id="newMeetDate" type="date" class="border rounded-md p-2">
+                        <button id="addMeetBtn" class="bg-green-600 text-white px-4 py-2 rounded-md">新增</button>
+                    </div>
+                    <div id="meetList" class="mt-4 space-y-1"></div>
+                </div>
+            </section>
+            <section id="settings" class="content-section">
                 <h2 class="text-3xl font-bold text-slate-800">系統設定</h2>
                 <p class="text-slate-500 mt-1">進行系統相關的參數配置。</p>
                  <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
@@ -324,6 +350,37 @@
     </div>
 
     <script>
+        function getAnnouncements(){
+            return JSON.parse(localStorage.getItem('announcements') || '[]');
+        }
+        function saveAnnouncements(list){
+            localStorage.setItem('announcements', JSON.stringify(list));
+        }
+        function getMeetings(){
+            return JSON.parse(localStorage.getItem('meetings') || '[]');
+        }
+        function saveMeetings(list){
+            localStorage.setItem('meetings', JSON.stringify(list));
+        }
+
+        function renderAnnList(){
+            const container = document.getElementById('annList');
+            if(!container) return;
+            const list = getAnnouncements();
+            container.innerHTML = list.length ?
+                `<ul class="list-disc pl-6">${list.map(a=>`<li>${a}</li>`).join('')}</ul>` :
+                '<p class="text-slate-500">目前沒有公告</p>';
+        }
+
+        function renderMeetList(){
+            const container = document.getElementById('meetList');
+            if(!container) return;
+            const list = getMeetings();
+            container.innerHTML = list.length ?
+                `<ul class="list-disc pl-6">${list.map(m=>`<li>${m.date} - ${m.title}</li>`).join('')}</ul>` :
+                '<p class="text-slate-500">目前沒有會議</p>';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const links = document.querySelectorAll('.sidebar-link');
             const sections = document.querySelectorAll('.content-section');
@@ -375,6 +432,37 @@
                     // window.location.href = 'YOUR_LINK_HERE';
                     alert('將前往新增教案頁面 (此處可加入連結)');
                 });
+            }
+
+            // --- Announcement Logic ---
+            const addAnnBtn = document.getElementById('addAnnBtn');
+            if(addAnnBtn){
+                addAnnBtn.addEventListener('click', function(){
+                    const txt = document.getElementById('newAnnText').value.trim();
+                    if(!txt) return;
+                    const list = getAnnouncements();
+                    list.unshift(txt);
+                    saveAnnouncements(list);
+                    document.getElementById('newAnnText').value = '';
+                    renderAnnList();
+                });
+                renderAnnList();
+            }
+
+            const addMeetBtn = document.getElementById('addMeetBtn');
+            if(addMeetBtn){
+                addMeetBtn.addEventListener('click', function(){
+                    const title = document.getElementById('newMeetTitle').value.trim();
+                    const date  = document.getElementById('newMeetDate').value;
+                    if(!title || !date) return;
+                    const list = getMeetings();
+                    list.push({title, date});
+                    saveMeetings(list);
+                    document.getElementById('newMeetTitle').value = '';
+                    document.getElementById('newMeetDate').value = '';
+                    renderMeetList();
+                });
+                renderMeetList();
             }
         });
     </script>

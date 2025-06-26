@@ -49,6 +49,14 @@
   };
 
   let currentRole = null;   // 目前點了哪張卡
+
+  function getAnnouncements(){
+    return JSON.parse(localStorage.getItem('announcements') || '[]');
+  }
+  function getMeetings(){
+    return JSON.parse(localStorage.getItem('meetings') || '[]');
+  }
+
   document.addEventListener('DOMContentLoaded', renderHomePage);
 
   /* ---------- 3. 首頁 ---------- */
@@ -66,6 +74,16 @@
         animation-delay:${Math.random()*6}s;animation-duration:${8+Math.random()*6}s;">
       </div>`;
     }
+
+    const announcements = getAnnouncements();
+    const meetings = getMeetings();
+
+    const annHTML = announcements.length
+      ? `<ul class="list-disc pl-6 space-y-1">${announcements.map(a=>`<li>${a}</li>`).join('')}</ul>`
+      : '<p class="text-center text-gray-500">目前沒有公告</p>';
+    const meetHTML = meetings.length
+      ? `<ul class="list-disc pl-6 space-y-1">${meetings.map(m=>`<li>${m.date} - ${m.title}</li>`).join('')}</ul>`
+      : '<p class="text-center text-gray-500">目前沒有會議</p>';
 
     app.innerHTML = `
       ${particles}
@@ -97,6 +115,16 @@
             ${featureCard('activity','友善使用者介面','直觀設計，操作簡單易上手。')}
             ${featureCard('shield-check','安全可靠','數據加密，保障資訊安全。')}
           </div>
+        </div>
+
+        <div class="w-full max-w-5xl mt-12 p-4">
+          <h3 class="text-xl font-bold text-center mb-4" style="color:${colors['home-primary-blue']}">最新公告</h3>
+          ${annHTML}
+        </div>
+
+        <div class="w-full max-w-5xl mt-8 p-4">
+          <h3 class="text-xl font-bold text-center mb-4" style="color:${colors['home-primary-blue']}">近期會議時程</h3>
+          ${meetHTML}
         </div>
       </div>
 
