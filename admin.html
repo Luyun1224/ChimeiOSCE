@@ -6,215 +6,76 @@
     <title>OSCE 線上評分系統 - 管理者儀表板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
-        }
-        .sidebar-link {
-            transition: all 0.2s ease-in-out;
-        }
-        .sidebar-link:hover, .sidebar-link.active {
-            background-color: #15803d; /* dark-green-700 */
-            color: #f0fdf4; /* green-50 */
-            transform: translateX(4px);
-        }
-        .content-section {
-            display: none;
-        }
-        .content-section.active {
-            display: block;
-        }
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .status-completed { background-color: #dcfce7; color: #166534; }
-        .status-inprogress { background-color: #fef9c3; color: #854d0e; }
-        .status-scheduled { background-color: #dbeafe; color: #1e40af; }
-        
-        /* New Statuses for Case Management */
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        .sidebar-link { transition: all 0.2s ease-in-out; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #15803d; color: #f0fdf4; transform: translateX(4px); }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
         .status-active { background-color: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
         .status-draft { background-color: #fef3c7; color: #d97706; border: 1px solid #d97706;}
         .status-archived { background-color: #e5e7eb; color: #4b5563; border: 1px solid #4b5563;}
-
-        .action-icon {
-            color: #6b7280;
-            transition: color 0.2s;
-            cursor: pointer;
-        }
-        .action-icon:hover {
-            color: #111827;
-        }
-
+        .action-icon { color: #6b7280; transition: color 0.2s; cursor: pointer; }
+        .action-icon:hover { color: #111827; }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .status-completed { background-color: #dcfce7; color: #166534; }
+        .status-inprogress { background-color: #fef9c3; color: #854d0e; }
+        .status-scheduled { background-color: #dbeafe; color: #1e40af; }
     </style>
 </head>
 <body class="bg-slate-100">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <aside class="w-64 bg-green-800 text-green-100 flex flex-col fixed h-full">
             <div class="p-6 text-center border-b border-green-700">
-                <h1 class="text-2xl font-bold flex items-center justify-center">
-                    <i class="fas fa-shield-heart text-3xl mr-3"></i>
-                    <span>OSCE 系統</span>
-                </h1>
+                <h1 class="text-2xl font-bold flex items-center justify-center"><i class="fas fa-shield-heart text-3xl mr-3"></i><span>OSCE 系統</span></h1>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2">
-                <a href="#" class="sidebar-link active flex items-center p-3 rounded-lg" data-target="dashboard">
-                    <i class="fas fa-tachometer-alt w-6 text-center"></i><span class="ml-4">儀表板</span>
-                </a>
-                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="cases">
-                    <i class="fas fa-book-medical w-6 text-center"></i><span class="ml-4">教案管理</span>
-                </a>
-                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="users">
-                    <i class="fas fa-users w-6 text-center"></i><span class="ml-4">人員管理</span>
-                </a>
-                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="exams">
-                    <i class="fas fa-calendar-alt w-6 text-center"></i><span class="ml-4">考試管理</span>
-                </a>
-                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="scores">
-                    <i class="fas fa-chart-line w-6 text-center"></i><span class="ml-4">成績與分析</span>
-                </a>
-                 <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="settings">
-                    <i class="fas fa-cog w-6 text-center"></i><span class="ml-4">系統設定</span>
-                </a>
+                <a href="#" class="sidebar-link active flex items-center p-3 rounded-lg" data-target="dashboard"><i class="fas fa-tachometer-alt w-6 text-center"></i><span class="ml-4">儀表板</span></a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="cases"><i class="fas fa-book-medical w-6 text-center"></i><span class="ml-4">教案管理</span></a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="users"><i class="fas fa-users w-6 text-center"></i><span class="ml-4">人員管理</span></a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="exams"><i class="fas fa-calendar-alt w-6 text-center"></i><span class="ml-4">考試管理</span></a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="scores"><i class="fas fa-chart-line w-6 text-center"></i><span class="ml-4">成績與分析</span></a>
+                <a href="#" class="sidebar-link flex items-center p-3 rounded-lg" data-target="settings"><i class="fas fa-cog w-6 text-center"></i><span class="ml-4">系統設定</span></a>
             </nav>
             <div class="p-4 border-t border-green-700">
                 <div class="flex items-center">
                     <img src="https://placehold.co/40x40/dcfce7/166534?text=A" class="rounded-full" alt="管理者頭像">
                     <div class="ml-3">
                         <p class="font-semibold">管理者</p>
-                        <!-- The logout link below can be pointed to your homepage -->
-                        <a href="#" class="text-xs text-green-300 hover:text-white">登出</a>
+                        <a href="index.html" class="text-xs text-green-300 hover:text-white">登出</a>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="ml-64 flex-1 p-8 overflow-y-auto">
-            <!-- Dashboard Content -->
             <section id="dashboard" class="content-section active">
                 <h2 class="text-3xl font-bold text-slate-800">儀表板</h2>
                 <p class="text-slate-500 mt-1">歡迎回來！這裏是您系統的即時概覽。</p>
-
-                <!-- Stat Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                     <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
-                        <div class="bg-green-100 p-4 rounded-full">
-                            <i class="fas fa-calendar-check text-2xl text-green-700"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-slate-500 text-sm">今日待考場次</p>
-                            <p class="text-2xl font-bold text-slate-800">8</p>
-                        </div>
+                        <div class="bg-green-100 p-4 rounded-full"><i class="fas fa-calendar-check text-2xl text-green-700"></i></div>
+                        <div class="ml-4"><p class="text-slate-500 text-sm">今日待考場次</p><p class="text-2xl font-bold text-slate-800">8</p></div>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
-                        <div class="bg-blue-100 p-4 rounded-full">
-                           <i class="fas fa-calendar-days text-2xl text-blue-700"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-slate-500 text-sm">本月OSCE場次</p>
-                            <p class="text-2xl font-bold text-slate-800">15</p>
-                        </div>
+                        <div class="bg-blue-100 p-4 rounded-full"><i class="fas fa-calendar-days text-2xl text-blue-700"></i></div>
+                        <div class="ml-4"><p class="text-slate-500 text-sm">本月OSCE場次</p><p class="text-2xl font-bold text-slate-800">15</p></div>
                     </div>
-                     <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
-                        <div class="bg-amber-100 p-4 rounded-full">
-                           <i class="fas fa-book text-2xl text-amber-700"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-slate-500 text-sm">系統總教案</p>
-                            <p class="text-2xl font-bold text-slate-800">152</p>
-                        </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
+                        <div class="bg-amber-100 p-4 rounded-full"><i class="fas fa-book text-2xl text-amber-700"></i></div>
+                        <div class="ml-4"><p class="text-slate-500 text-sm">系統總教案</p><p class="text-2xl font-bold text-slate-800">152</p></div>
                     </div>
-                     <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
-                        <div class="bg-rose-100 p-4 rounded-full">
-                           <i class="fas fa-user-graduate text-2xl text-rose-700"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-slate-500 text-sm">系統總考生</p>
-                            <p class="text-2xl font-bold text-slate-800">876</p>
-                        </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-center">
+                        <div class="bg-rose-100 p-4 rounded-full"><i class="fas fa-user-graduate text-2xl text-rose-700"></i></div>
+                        <div class="ml-4"><p class="text-slate-500 text-sm">系統總考生</p><p class="text-2xl font-bold text-slate-800">876</p></div>
                     </div>
                 </div>
-
-                <!-- Recent Exams -->
-                <div class="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-8">
-                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-md">
-                        <h3 class="text-xl font-semibold text-slate-700 mb-4">近期考試列表</h3>
-                        <table class="w-full text-left">
-                            <thead class="text-slate-500 text-sm border-b">
-                                <tr>
-                                    <th class="py-2 font-normal">考試名稱</th>
-                                    <th class="py-2 font-normal">日期</th>
-                                    <th class="py-2 font-normal text-center">狀態</th>
-                                    <th class="py-2 font-normal text-center">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-b hover:bg-slate-50">
-                                    <td class="py-4">2025年度內科OSCE</td>
-                                    <td class="py-4">2025-07-15</td>
-                                    <td class="py-4 text-center"><span class="status-badge status-scheduled">已排程</span></td>
-                                    <td class="py-4 text-center"><a href="#" class="text-green-600 hover:underline">檢視</a></td>
-                                </tr>
-                                <tr class="border-b hover:bg-slate-50">
-                                    <td class="py-4">PGY學員期中評核</td>
-                                    <td class="py-4">2025-06-20</td>
-                                    <td class="py-4 text-center"><span class="status-badge status-inprogress">進行中</span></td>
-                                    <td class="py-4 text-center"><a href="#" class="text-green-600 hover:underline">監控</a></td>
-                                </tr>
-                                <tr class="border-b hover:bg-slate-50">
-                                    <td class="py-4">畢業生臨床技能最終測驗</td>
-                                    <td class="py-4">2025-05-30</td>
-                                    <td class="py-4 text-center"><span class="status-badge status-completed">已完成</span></td>
-                                    <td class="py-4 text-center"><a href="#" class="text-green-600 hover:underline">報告</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </section>
 
-            <!-- Case Management Page -->
             <section id="cases" class="content-section">
                 <h2 class="text-3xl font-bold text-slate-800">教案管理系統</h2>
                 <p class="text-slate-500 mt-1">管理與瀏覽所有臨床技能教案</p>
-
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-8">
-                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">內科</p>
-                        <p class="text-2xl font-bold text-blue-600 mt-1">35</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">外科</p>
-                        <p class="text-2xl font-bold text-red-600 mt-1">28</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">婦科</p>
-                        <p class="text-2xl font-bold text-pink-500 mt-1">15</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">兒科</p>
-                        <p class="text-2xl font-bold text-yellow-500 mt-1">22</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">急診科</p>
-                        <p class="text-2xl font-bold text-purple-600 mt-1">18</p>
-                    </div>
-                     <div class="bg-white p-4 rounded-xl shadow-md text-center">
-                        <p class="text-slate-500 text-sm font-semibold">其他</p>
-                        <p class="text-2xl font-bold text-gray-600 mt-1">10</p>
-                    </div>
-                </div>
-
                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                         <div class="relative w-full md:w-1/3">
@@ -225,7 +86,6 @@
                             <i class="fas fa-plus mr-2"></i> 新增教案
                         </button>
                     </div>
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="text-slate-500 text-sm border-b bg-slate-50">
@@ -239,143 +99,103 @@
                                 </tr>
                             </thead>
                             <tbody id="caseTableBody" class="divide-y">
-                                <tr class="case-row" data-search-term="標準化病人溝通技巧 全科 王醫師">
-                                    <td class="p-4">標準化病人溝通技巧</td>
-                                    <td class="p-4">全科</td>
-                                    <td class="p-4">王醫師</td>
-                                    <td class="p-4">2025-06-23 14:30</td>
-                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-active"><i class="fas fa-circle fa-xs mr-2"></i>啟用中</span></td>
-                                    <td class="p-4 text-center space-x-4">
-                                        <i class="fas fa-pen action-icon" title="編輯"></i>
-                                        <i class="fas fa-trash action-icon" title="刪除"></i>
-                                        <i class="fas fa-copy action-icon" title="複製"></i>
-                                    </td>
-                                </tr>
-                                <tr class="case-row" data-search-term="腹部理學檢查流程 內科 張教授">
-                                    <td class="p-4">腹部理學檢查流程</td>
-                                    <td class="p-4">內科</td>
-                                    <td class="p-4">張教授</td>
-                                    <td class="p-4">2025-06-20 09:15</td>
-                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-active"><i class="fas fa-circle fa-xs mr-2"></i>啟用中</span></td>
-                                    <td class="p-4 text-center space-x-4">
-                                        <i class="fas fa-pen action-icon" title="編輯"></i>
-                                        <i class="fas fa-trash action-icon" title="刪除"></i>
-                                        <i class="fas fa-copy action-icon" title="複製"></i>
-                                    </td>
-                                </tr>
-                                 <tr class="case-row" data-search-term="手術無菌操作技術評核 外科 陳主任">
-                                    <td class="p-4">手術無菌操作技術評核</td>
-                                    <td class="p-4">外科</td>
-                                    <td class="p-4">陳主任</td>
-                                    <td class="p-4">2025-06-18 17:55</td>
-                                    <td class="p-4 text-center"><span class="inline-flex items-center status-badge status-draft"><i class="fas fa-circle fa-xs mr-2"></i>草稿</span></td>
-                                    <td class="p-4 text-center space-x-4">
-                                        <i class="fas fa-pen action-icon" title="編輯"></i>
-                                        <i class="fas fa-trash action-icon" title="刪除"></i>
-                                        <i class="fas fa-copy action-icon" title="複製"></i>
-                                    </td>
-                                </tr>
+                                <tr><td colspan="6" class="text-center p-8 text-slate-500">資料載入中...</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="flex justify-between items-center mt-6">
-                        <p class="text-sm text-slate-500">顯示 1-3 / 128</p>
-                        <div class="flex items-center space-x-1">
-                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">上一頁</a>
-                            <a href="#" class="px-3 py-1 border rounded-md bg-green-600 text-white">1</a>
-                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">2</a>
-                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">3</a>
-                            <span class="px-3 py-1">...</span>
-                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">26</a>
-                            <a href="#" class="px-3 py-1 border rounded-md hover:bg-slate-100">下一頁</a>
-                        </div>
-                    </div>
                 </div>
             </section>
-            <section id="users" class="content-section">
-                <h2 class="text-3xl font-bold text-slate-800">人員管理</h2>
-                <p class="text-slate-500 mt-1">管理系統中的所有考官與考生資料。</p>
-                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <p class="text-center text-slate-500">人員管理介面內容... (包含考官/考生列表、匯入/匯出功能等)</p>
-                </div>
-            </section>
-            <section id="exams" class="content-section">
-                <h2 class="text-3xl font-bold text-slate-800">考試管理</h2>
-                <p class="text-slate-500 mt-1">安排新的考試、監控進行中的考試，並查閱歷史考試紀錄。</p>
-                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <p class="text-center text-slate-500">考試管理介面內容... (包含建立考試的步驟引導、考試列表等)</p>
-                </div>
-            </section>
-            <section id="scores" class="content-section">
-                <h2 class="text-3xl font-bold text-slate-800">成績與分析</h2>
-                <p class="text-slate-500 mt-1">查詢個別考生成績，並對考試數據進行深度分析。</p>
-                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <p class="text-center text-slate-500">成績查詢與分析介面內容... (包含考生搜尋、成績報告、視覺化圖表等)</p>
-                </div>
-            </section>
-             <section id="settings" class="content-section">
-                <h2 class="text-3xl font-bold text-slate-800">系統設定</h2>
-                <p class="text-slate-500 mt-1">進行系統相關的參數配置。</p>
-                 <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <p class="text-center text-slate-500">系統設定介面內容... (包含權限管理、評分量表範本等)</p>
-                </div>
-            </section>
+            <section id="users" class="content-section"><h2 class="text-3xl font-bold text-slate-800">人員管理</h2></section>
+            <section id="exams" class="content-section"><h2 class="text-3xl font-bold text-slate-800">考試管理</h2></section>
+            <section id="scores" class="content-section"><h2 class="text-3xl font-bold text-slate-800">成績與分析</h2></section>
+            <section id="settings" class="content-section"><h2 class="text-3xl font-bold text-slate-800">系統設定</h2></section>
         </main>
     </div>
 
     <script>
+        // ***** 您的專屬 API 網址已更新 *****
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz1UVrfqKMIEnNJQNklqZbWpt260yZl5MtajjdkcNxi3nnkg-0RpzZpVUzW3QT9OJQA/exec';
+
         document.addEventListener('DOMContentLoaded', function() {
             const links = document.querySelectorAll('.sidebar-link');
             const sections = document.querySelectorAll('.content-section');
-
+            
             // --- Navigation Logic ---
             links.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
                     const targetId = this.getAttribute('data-target');
-                    
-                    // Update active link
                     links.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
-                    
-                    // Update active content
                     sections.forEach(section => {
                         section.classList.remove('active');
-                        if (section.id === targetId) {
-                            section.classList.add('active');
-                        }
+                        if (section.id === targetId) section.classList.add('active');
                     });
+
+                    // ** 當點擊到「教案管理」時，觸發資料載入 **
+                    if (targetId === 'cases') {
+                        loadCases();
+                    }
                 });
             });
 
-            // --- Case Management Search Logic ---
-            const searchInput = document.getElementById('caseSearchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const caseRows = document.querySelectorAll('#caseTableBody .case-row');
-                    
-                    caseRows.forEach(row => {
-                        const rowData = row.getAttribute('data-search-term').toLowerCase();
-                        if (rowData.includes(searchTerm)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
+            // --- "新增教案" 按鈕跳轉 ---
+            document.getElementById('addCaseBtn').addEventListener('click', function() {
+                window.location.href = 'admin_plans.html'; // 直接跳轉到新增頁面
+            });
+            
+            // --- 從後端 API 載入教案資料 ---
+            async function loadCases() {
+                const tableBody = document.getElementById('caseTableBody');
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500">資料載入中...</td></tr>';
+
+                try {
+                    const response = await fetch(`${GAS_WEB_APP_URL}?action=getCases`);
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        renderCases(result.data);
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Error loading cases:', error);
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-red-500">資料載入失敗: ${error.message}</td></tr>`;
+                }
+            }
+
+            // --- 將後端資料渲染成表格 ---
+            function renderCases(cases) {
+                const tableBody = document.getElementById('caseTableBody');
+                if (!cases || cases.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500">目前沒有任何教案。</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = ''; // 清空表格
+                cases.forEach(caseItem => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50';
+                    row.innerHTML = `
+                        <td class="p-4">${caseItem.caseName}</td>
+                        <td class="p-4">${caseItem.department}</td>
+                        <td class="p-4">${caseItem.creator}</td>
+                        <td class="p-4">${caseItem.lastModified}</td>
+                        <td class="p-4 text-center">
+                            <span class="inline-flex items-center status-badge ${caseItem.status === '啟用中' ? 'status-active' : 'status-draft'}">
+                                <i class="fas fa-circle fa-xs mr-2"></i>${caseItem.status}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center space-x-4">
+                            <i class="fas fa-pen action-icon" title="編輯"></i>
+                            <i class="fas fa-trash action-icon" title="刪除"></i>
+                            <i class="fas fa-copy action-icon" title="複製"></i>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
                 });
             }
 
-            // --- Add Case Button Logic ---
-            const addCaseBtn = document.getElementById('addCaseBtn');
-            if(addCaseBtn) {
-                addCaseBtn.addEventListener('click', function() {
-                    // You can add your navigation logic here, for example:
-                    // window.location.href = 'YOUR_LINK_HERE';
-                    alert('將前往新增教案頁面 (此處可加入連結)');
-                });
-            }
         });
     </script>
 </body>
