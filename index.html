@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>奇美醫院 OSCE 測驗評量系統</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -23,6 +21,11 @@
       animation:moveParticles 10s linear infinite;
     }
     .hidden{display:none!important}
+    /* 新增：處理登入按鈕的載入中狀態 */
+    #login-btn.loading {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
@@ -40,13 +43,9 @@
     'home-text-light':'#FFF',
   };
 
-  /* ---------- 2. 跳頁對照 ---------- */
-  /* 之後只要新增頁面，這裡加一行即可 */
-  const credentials = {
-    examiner:{ user:'B20401', pass:'B20401', page:'examiner.html' },
-    student :{ user:'001',    pass:'001',    page:'student.html'  },
-    admin   :{ user:'admin',  pass:'admin',  page:'admin.html'    },
-  };
+  /* ---------- 2. 後端 API 設定 ---------- */
+  // ***** 您的專屬 API 網址已更新 *****
+  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz1UVrfqKMIEnNJQNklqZbWpt260yZl5MtajjdkcNxi3nnkg-0RpzZpVUzW3QT9OJQA/exec';
 
   let currentRole = null;   // 目前點了哪張卡
   document.addEventListener('DOMContentLoaded', renderHomePage);
@@ -56,8 +55,7 @@
     const app = document.getElementById('app-container');
     app.className = 'min-h-screen relative overflow-hidden flex flex-col items-center justify-between p-4';
     app.style.backgroundColor = colors['home-soft-background'];
-
-    /* 粒子隨機塞 10~12 顆 */
+    
     let particles = '';
     for(let i=0;i<12;i++){
       particles += `<div class="particle"
@@ -69,28 +67,17 @@
 
     app.innerHTML = `
       ${particles}
-
-      <!-- 內容 -->
       <div class="flex-grow flex flex-col items-center justify-center w-full relative z-10">
-
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-16 text-center leading-tight"
-            style="color:${colors['home-primary-blue']}">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-16 text-center leading-tight" style="color:${colors['home-primary-blue']}">
           奇美醫療財團法人奇美醫院<br class="md:hidden"/>OSCE測驗評分線上系統
         </h1>
-
-        <!-- 三張登入卡 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl px-4">
-
           ${cardHTML('examiner','考官','user',colors['home-item-dark-purple'],'評分與管理考試流程')}
           ${cardHTML('student','考生','graduation-cap',colors['home-item-dark-blue'],'查看考試結果與回饋')}
           ${cardHTML('admin','管理者','shield',colors['home-item-dark-green'],'系統設定與數據分析')}
         </div>
-
-        <!-- 系統特色與優勢 -->
         <div class="w-full max-w-5xl mt-16 p-4">
-          <h3 class="text-2xl font-bold text-center mb-8"
-              style="color:${colors['home-primary-blue']}">系統特色與優勢</h3>
-
+          <h3 class="text-2xl font-bold text-center mb-8" style="color:${colors['home-primary-blue']}">系統特色與優勢</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             ${featureCard('zap','高效率評分','提升評分效率，節省寶貴時間。')}
             ${featureCard('bar-chart-2','數據化分析','提供詳盡的評分數據洞察。')}
@@ -99,13 +86,11 @@
           </div>
         </div>
       </div>
-
       <footer class="w-full text-center py-6 mt-16" style="color:${colors['home-text-dark']}">
         <p class="text-lg font-bold">2025 奇美醫院臨床技能中心</p>
       </footer>
     `;
-
-    /* 卡片點擊 → 開登入框 */
+    
     ['examiner','student','admin'].forEach(role=>{
       document.getElementById(`${role}-card`).onclick = ()=>showLoginModal(role);
     });
@@ -115,9 +100,7 @@
   /* 卡片模板 */
   function cardHTML(id,title,icon,bg,desc){
     return `
-      <div id="${id}-card"
-           class="p-8 rounded-2xl shadow-xl flex flex-col items-center cursor-pointer transition-transform hover:scale-105"
-           style="background:${bg};color:${colors['home-text-light']}">
+      <div id="${id}-card" class="p-8 rounded-2xl shadow-xl flex flex-col items-center cursor-pointer transition-transform hover:scale-105" style="background:${bg};color:${colors['home-text-light']}">
         <div class="p-4 rounded-full bg-white mb-4 shadow-inner">
           <i data-lucide="${icon}" width="64" height="64" style="color:${bg}"></i>
         </div>
@@ -129,10 +112,8 @@
   /* 特色卡模板 */
   function featureCard(icon,title,desc){
     return `
-      <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center"
-           style="background-color:${colors['home-item-dark-blue']}20">
-        <i data-lucide="${icon}" width="40" height="40" class="mb-3"
-           style="color:${colors['home-primary-blue']}"></i>
+      <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center" style="background-color:${colors['home-item-dark-blue']}20">
+        <i data-lucide="${icon}" width="40" height="40" class="mb-3" style="color:${colors['home-primary-blue']}"></i>
         <p class="font-semibold text-lg" style="color:${colors['home-text-dark']}">${title}</p>
         <p class="text-base text-gray-700">${desc}</p>
       </div>`;
@@ -147,47 +128,83 @@
     modal.id = 'login-modal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-      <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm"
-           style="background:${colors['home-soft-background']}">
-        <h2 class="text-2xl font-bold mb-6 text-center"
-            style="color:${colors['home-primary-blue']}">${roleName} 登入</h2>
-
+      <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm" style="background:${colors['home-soft-background']}">
+        <h2 class="text-2xl font-bold mb-6 text-center" style="color:${colors['home-primary-blue']}">${roleName} 登入</h2>
         <p id="login-error" class="text-red-600 mb-4 text-center font-semibold hidden"></p>
-
         <label class="block text-gray-700 font-bold mb-1">帳號：</label>
         <input id="login-user" class="w-full mb-4 p-3 border rounded-xl" placeholder="請輸入帳號" />
-
         <label class="block text-gray-700 font-bold mb-1">密碼：</label>
         <input id="login-pass" type="password" class="w-full mb-6 p-3 border rounded-xl" placeholder="請輸入密碼" />
-
         <div class="flex justify-between">
-          <button id="login-btn"  class="py-3 px-6 rounded-full font-bold"
-                  style="background:${colors['home-primary-blue']};color:#fff">登入</button>
+          <button id="login-btn"  class="py-3 px-6 rounded-full font-bold" style="background:${colors['home-primary-blue']};color:#fff">登入</button>
           <button id="cancel-btn" class="py-3 px-6 rounded-full font-bold bg-gray-500 text-white">取消</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
 
-    document.getElementById('login-btn').onclick  = handleLogin;
+    document.getElementById('login-btn').onclick = handleLogin;
     document.getElementById('cancel-btn').onclick = ()=>modal.remove();
+    // 監聽 Enter 鍵
+    document.getElementById('login-pass').addEventListener('keyup', function(event) {
+        if (event.key === "Enter") {
+            handleLogin();
+        }
+    });
     lucide.createIcons();
   }
 
-  /* ---------- 5. 登入驗證 & 直接換頁 ---------- */
-  function handleLogin(){
+  /* ---------- 5. 後端登入驗證 ---------- */
+  async function handleLogin(){
     const user = document.getElementById('login-user').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
-    const err  = document.getElementById('login-error');
-    const {user:U,pass:P,page} = credentials[currentRole];
+    const errEl = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
 
-    if(user===U && pass===P){
-      err.classList.add('hidden');
-      /* 關彈窗再跳轉 */
-      document.getElementById('login-modal').remove();
-      location.href = page;            // ← 直接換檔案
-    }else{
-      err.textContent = '帳號或密碼錯誤，請重新輸入！';
-      err.classList.remove('hidden');
+    if (loginBtn.classList.contains('loading')) return;
+
+    const showError = (message) => {
+        errEl.textContent = message;
+        errEl.classList.remove('hidden');
+        loginBtn.classList.remove('loading');
+        loginBtn.textContent = '登入';
+    };
+
+    if (!user || !pass) {
+        showError('帳號和密碼不能為空！');
+        return;
+    }
+    
+    errEl.classList.add('hidden');
+    loginBtn.classList.add('loading');
+    loginBtn.textContent = '驗證中...';
+
+    const payload = {
+      action: 'login', // **重要**: 加上 action 參數
+      user: user,
+      pass: pass,
+      role: currentRole
+    };
+
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        redirect: "follow"
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        document.getElementById('login-modal').remove();
+        location.href = result.page;
+      } else {
+        showError(result.message || '帳號或密碼錯誤，請重新輸入！');
+      }
+
+    } catch (error) {
+      console.error('Login API Error:', error);
+      showError('無法連接至驗證伺服器，請檢查您的網路連線。');
     }
   }
   </script>
