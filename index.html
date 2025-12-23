@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奇美醫院 - OSCE 臨床技能中心儀表板</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Bauhaus Theme Variables */
+        :root {
+            --bauhaus-red: #D03328;
+            --bauhaus-yellow: #EAB936;
+            --bauhaus-blue: #1C4E8C;
+            --bauhaus-white: #FCFBF9;
+            --bauhaus-black: #1A1A1A;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bauhaus-white);
+            color: var(--bauhaus-black);
+            background-image: radial-gradient(var(--bauhaus-black) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Utility Classes */
+        .bauhaus-border {
+            border: 3px solid var(--bauhaus-black);
+        }
+        .bauhaus-shadow {
+            box-shadow: 6px 6px 0px 0px var(--bauhaus-black);
+        }
+        .bauhaus-shadow-hover:hover {
+            box-shadow: 8px 8px 0px 0px var(--bauhaus-black);
+            transform: translate(-2px, -2px);
+        }
+        
+        /* Sidebar Link Active State */
+        .nav-link.active {
+            background-color: var(--bauhaus-yellow);
+            color: var(--bauhaus-black);
+            border-color: var(--bauhaus-black);
+            font-weight: 900;
+        }
+        .nav-link:hover:not(.active) {
+            background-color: #333;
+            border-color: white;
+        }
+
+        /* Chart Animations */
+        @keyframes growBar {
+            from { height: 0; }
+            to { height: var(--h); }
+        }
+        .bar-animate {
+            animation: growBar 1s ease-out forwards;
+        }
+        
+        /* Custom Scrollbar for Sidebar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <!-- Main Flex Container (Full Height) -->
+    <div class="flex h-screen flex-col">
+
+        <!-- Top Header -->
+        <header class="bg-[#1C4E8C] text-white border-b-[4px] border-black z-50 flex-shrink-0">
+            <div class="w-full px-4 py-3 flex justify-between items-center relative overflow-hidden">
+                <!-- Decorative Circle -->
+                <div class="absolute top-[-20px] left-[-20px] w-20 h-20 bg-[#EAB936] rounded-full border-[3px] border-black z-0"></div>
+                
+                <div class="flex items-center gap-4 z-10 pl-8">
+                    <div class="bg-white p-1.5 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                        <img src="https://www.chimei.org.tw/main/cmh_department/59012/mag/202111/images/logo.png" alt="Logo" class="h-6 md:h-8 w-auto object-contain">
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-2xl font-black tracking-wide leading-none">臨床技能中心</h1>
+                        <p class="text-[10px] md:text-xs font-bold text-[#EAB936] tracking-widest uppercase">OSCE Dashboard System</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 z-10">
+                    <div class="hidden md:flex items-center bg-black px-3 py-1 rounded-full border border-white">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                        <span class="text-xs font-mono">System Online</span>
+                    </div>
+                    <button class="bg-[#D03328] hover:bg-[#b02218] text-white p-2 border-[2px] border-white rounded-full transition-colors shadow-md">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Body Container (Sidebar + Main) -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar -->
+            <aside class="w-64 bg-[#1A1A1A] text-white border-r-[4px] border-black flex flex-col flex-shrink-0 z-40 shadow-[4px_0_10px_rgba(0,0,0,0.2)] overflow-y-auto custom-scroll">
+                
+                <!-- Filter Section (Top of Sidebar) -->
+                <div class="p-5 border-b-2 border-gray-800 bg-[#222]">
+                    <h3 class="text-[#EAB936] text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i data-lucide="filter" class="w-3 h-3"></i> 篩選條件 Filters
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <!-- Year Filter -->
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">年度 Year</label>
+                            <div class="relative">
+                                <select class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                    <option value="2025">2025 年度</option>
+                                    <option value="2024">2024 年度</option>
+                                    <option value="2023">2023 年度</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Profession Filter -->
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">職類 Profession</label>
+                            <div class="relative">
+                                <select class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                    <option value="all">全部職類 All</option>
+                                    <option value="西醫">西醫</option>
+                                    <option value="牙醫">牙醫</option>
+                                    <option value="中醫">中醫</option>
+                                    <option value="護理">護理</option>
+                                    <option value="藥事">藥事</option>
+                                    <option value="醫事放射">醫事放射</option>
+                                    <option value="醫事檢驗">醫事檢驗</option>
+                                    <option value="其他">其他...</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="p-4 space-y-8 flex-1">
+                    
+                    <!-- Group 1: Survey Entry -->
+                    <div>
+                        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2 border-l-2 border-[#D03328]">
+                            問卷填寫 Survey Entry
+                        </h3>
+                        <div class="space-y-2">
+                            <a href="osce_evaluation_form.html" target="_blank" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all group">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-sm">考官評核 SP</span>
+                                    <i data-lucide="external-link" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
+                                <span class="text-[10px] text-gray-400 group-hover:text-gray-300">Examiner to SP</span>
+                            </a>
+                            
+                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <span class="font-bold text-sm block">考官滿意度</span>
+                                <span class="text-[10px] text-gray-400">Examiner Feedback</span>
+                            </a>
+
+                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <span class="font-bold text-sm block">SP 滿意度</span>
+                                <span class="text-[10px] text-gray-400">SP Feedback</span>
+                            </a>
+
+                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <span class="font-bold text-sm block">考生回饋</span>
+                                <span class="text-[10px] text-gray-400">Student Feedback</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Group 2: Dashboard -->
+                    <div>
+                        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2 border-l-2 border-[#1C4E8C]">
+                            儀表板 Dashboard
+                        </h3>
+                        <div class="space-y-2">
+                            <!-- Active Dashboard Link -->
+                            <a href="#" class="nav-link active block p-3 border-2 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform -translate-y-1">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">綜合分析總覽</span>
+                                </div>
+                            </a>
+
+                            <a href="#" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">考官評核 SP 分析</span>
+                                </div>
+                            </a>
+
+                            <a href="#" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">滿意度交叉分析</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                </nav>
+
+                <!-- Footer Info -->
+                <div class="p-4 text-[10px] text-gray-500 text-center border-t-2 border-gray-800">
+                    <p>v1.0.2 Beta</p>
+                    <p>Designed for Chimei</p>
+                </div>
+            </aside>
+
+            <!-- Main Content Area (Scrollable) -->
+            <main class="flex-1 overflow-y-auto bg-[#FCFBF9] p-4 md:p-8 relative">
+                
+                <!-- Header of Main Content -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b-2 border-black pb-4">
+                    <div>
+                        <h2 class="text-3xl font-black flex items-center gap-3">
+                            <span class="w-4 h-8 bg-[#D03328] border-2 border-black block"></span>
+                            綜合分析總覽
+                        </h2>
+                        <p class="text-gray-500 font-bold mt-1 ml-7">Overview Analytics</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-[#1C4E8C]">資料更新時間</p>
+                        <p class="text-xs text-gray-400 font-mono">2025-07-23 14:30:00</p>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- KPI 1 -->
+                    <div class="bg-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="absolute right-[-10px] top-[-10px] w-16 h-16 bg-gray-100 rounded-full z-0 group-hover:bg-[#EAB936] transition-colors"></div>
+                        <div class="relative z-10">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Total Surveys</p>
+                            <h3 class="text-4xl font-black mt-1">452</h3>
+                            <p class="text-xs font-bold text-[#1C4E8C] mt-2 flex items-center gap-1">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i> +12% vs last year
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2 -->
+                    <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="relative z-10">
+                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Examiner Score</p>
+                            <h3 class="text-4xl font-black mt-1 text-[#EAB936]">4.8</h3>
+                            <p class="text-xs font-bold text-gray-400 mt-2">Average Rating (1-5)</p>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div class="bg-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="relative z-10">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Participating SPs</p>
+                            <h3 class="text-4xl font-black mt-1">18</h3>
+                            <p class="text-xs font-bold text-[#D03328] mt-2">Across 12 Stations</p>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4 -->
+                    <div class="bg-[#D03328] text-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <div class="relative z-10">
+                            <p class="text-xs font-black text-white/70 uppercase tracking-widest">Pending Feedback</p>
+                            <h3 class="text-4xl font-black mt-1">24</h3>
+                            <p class="text-xs font-bold text-white/80 mt-2">Need Action</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                    
+                    <!-- Main Chart (Left) -->
+                    <div class="lg:col-span-2 bg-white border-[3px] border-black p-6 bauhaus-shadow">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold border-l-4 border-[#1C4E8C] pl-3">各站點評分平均</h3>
+                            <button class="text-xs font-bold border-2 border-black px-2 py-1 hover:bg-black hover:text-white transition-colors">Download CSV</button>
+                        </div>
+                        
+                        <!-- CSS Bar Chart Simulation -->
+                        <div class="space-y-4 pt-4">
+                            <!-- Bar 1 -->
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 text-xs font-bold text-gray-500">S1</span>
+                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
+                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 92%">4.8</div>
+                                </div>
+                            </div>
+                            <!-- Bar 2 -->
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 text-xs font-bold text-gray-500">S2</span>
+                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
+                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 85%">4.5</div>
+                                </div>
+                            </div>
+                            <!-- Bar 3 (Low) -->
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 text-xs font-bold text-gray-500">S3</span>
+                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
+                                    <div class="absolute top-0 left-0 h-full bg-[#D03328] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 65%">3.2</div>
+                                </div>
+                            </div>
+                            <!-- Bar 4 -->
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 text-xs font-bold text-gray-500">S4</span>
+                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
+                                    <div class="absolute top-0 left-0 h-full bg-[#EAB936] bar-animate flex items-center justify-end pr-2 text-black font-bold" style="--h: 100%; width: 95%">4.9</div>
+                                </div>
+                            </div>
+                             <!-- Bar 5 -->
+                             <div class="flex items-center gap-4">
+                                <span class="w-8 text-xs font-bold text-gray-500">S5</span>
+                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
+                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 88%">4.6</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Chart (Right) -->
+                    <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-6 bauhaus-shadow relative overflow-hidden">
+                        <h3 class="text-xl font-bold mb-6 border-l-4 border-[#EAB936] pl-3 relative z-10">職類參與比例</h3>
+                        
+                        <div class="flex items-center justify-center relative z-10 my-8">
+                             <!-- CSS Donut -->
+                             <div class="relative w-40 h-40 rounded-full border-[4px] border-white"
+                                 style="background: conic-gradient(
+                                    #D03328 0% 40%, 
+                                    #EAB936 40% 70%, 
+                                    #1C4E8C 70% 100%
+                                 );">
+                                 <div class="absolute inset-0 m-auto w-20 h-20 bg-[#1A1A1A] rounded-full border-[4px] border-white"></div>
+                             </div>
+                        </div>
+
+                        <div class="space-y-3 relative z-10">
+                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
+                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#D03328]"></span> 西醫</span>
+                                <span class="font-bold">40%</span>
+                            </div>
+                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
+                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#EAB936]"></span> 護理</span>
+                                <span class="font-bold">30%</span>
+                            </div>
+                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
+                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#1C4E8C]"></span> 其他</span>
+                                <span class="font-bold">30%</span>
+                            </div>
+                        </div>
+
+                        <!-- Decor -->
+                        <div class="absolute bottom-[-20px] right-[-20px] w-24 h-24 border-[4px] border-[#333] rounded-full z-0"></div>
+                    </div>
+                </div>
+                
+                <footer class="text-center text-xs text-gray-400 mt-12 pb-4">
+                    2025 © 奇美醫院臨床技能中心 製
+                </footer>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
