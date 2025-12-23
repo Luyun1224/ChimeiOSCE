@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇美醫院 - OSCE 臨床技能中心儀表板</title>
+    <title>奇美醫院臨床技能中心OSCE問卷滿意度成效儀表板</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -39,51 +42,106 @@
         .bauhaus-shadow {
             box-shadow: 6px 6px 0px 0px var(--bauhaus-black);
         }
+        .bauhaus-shadow-sm {
+            box-shadow: 3px 3px 0px 0px var(--bauhaus-black);
+        }
         .bauhaus-shadow-hover:hover {
             box-shadow: 8px 8px 0px 0px var(--bauhaus-black);
             transform: translate(-2px, -2px);
         }
         
         /* Sidebar Link Active State */
+        .nav-link {
+            cursor: pointer;
+            text-decoration: none; /* For a tags */
+        }
         .nav-link.active {
             background-color: var(--bauhaus-yellow);
             color: var(--bauhaus-black);
             border-color: var(--bauhaus-black);
             font-weight: 900;
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+            transform: translateY(-4px);
         }
         .nav-link:hover:not(.active) {
             background-color: #333;
             border-color: white;
+            color: white;
         }
 
-        /* Chart Animations */
-        @keyframes growBar {
-            from { height: 0; }
-            to { height: var(--h); }
+        /* View Switching Animations */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
         }
-        .bar-animate {
-            animation: growBar 1s ease-out forwards;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Custom Scrollbar for Sidebar */
+
+        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+            height: 8px;
         }
         .custom-scroll::-webkit-scrollbar-track {
             background: #1A1A1A;
         }
         .custom-scroll::-webkit-scrollbar-thumb {
             background: #555;
-            border-radius: 3px;
+            border-radius: 4px;
         }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        /* Tag Styles for Keywords */
+        .keyword-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 2px solid #1A1A1A;
+            margin: 2px;
+        }
+        .keyword-pos { background-color: #EAB936; color: black; }
+        .keyword-neg { background-color: #D03328; color: white; }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="overflow-hidden h-screen w-screen">
 
-    <!-- Main Flex Container (Full Height) -->
+    <!-- Modal (Hidden by default) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white border-[4px] border-black w-full max-w-md p-6 bauhaus-shadow relative transform transition-all scale-95 opacity-0" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-2 right-2 p-1 hover:bg-gray-100 border-2 border-transparent hover:border-black rounded-full">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="flex items-center gap-4 mb-4">
+                <div class="bg-[#EAB936] p-3 border-[3px] border-black rounded-full">
+                    <i data-lucide="info" class="w-6 h-6 text-black"></i>
+                </div>
+                <h3 class="text-xl font-black uppercase tracking-wide">System Notice</h3>
+            </div>
+            
+            <p id="modal-message" class="text-lg font-bold mb-6">Message goes here...</p>
+            
+            <button onclick="closeModal()" class="w-full bg-[#1C4E8C] text-white font-bold py-3 border-[3px] border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none shadow-[4px_4px_0px_0px_black] transition-all">
+                UNDERSTOOD
+            </button>
+        </div>
+    </div>
+
+    <!-- Configuration Alert (Shows if URL is missing) -->
+    <div id="config-alert" class="hidden fixed top-0 left-0 w-full bg-[#D03328] text-white p-2 text-center font-bold z-[70] border-b-4 border-black animate-pulse">
+        ⚠️ 請在程式碼中設定正確的 GAS_API_URL 才能讀取真實數據！
+    </div>
+
+    <!-- Main Flex Container -->
     <div class="flex h-screen flex-col">
 
-        <!-- Top Header -->
+        <!-- Header -->
         <header class="bg-[#1C4E8C] text-white border-b-[4px] border-black z-50 flex-shrink-0">
             <div class="w-full px-4 py-3 flex justify-between items-center relative overflow-hidden">
                 <!-- Decorative Circle -->
@@ -91,7 +149,9 @@
                 
                 <div class="flex items-center gap-4 z-10 pl-8">
                     <div class="bg-white p-1.5 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                        <img src="https://www.chimei.org.tw/main/cmh_department/59012/mag/202111/images/logo.png" alt="Logo" class="h-6 md:h-8 w-auto object-contain">
+                        <img src="https://www.chimei.org.tw/main/cmh_department/59012/mag/202111/images/logo.png" 
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmZiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5DTSBIb3NwaXRhbDwvdGV4dD48L3N2Zz4='"
+                             alt="Logo" class="h-6 md:h-8 w-auto object-contain">
                     </div>
                     <div>
                         <h1 class="text-lg md:text-2xl font-black tracking-wide leading-none">臨床技能中心</h1>
@@ -101,23 +161,23 @@
 
                 <div class="flex items-center gap-3 z-10">
                     <div class="hidden md:flex items-center bg-black px-3 py-1 rounded-full border border-white">
-                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                        <span class="text-xs font-mono">System Online</span>
+                        <span id="system-status-dot" class="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
+                        <span id="system-status-text" class="text-xs font-mono">Connecting...</span>
                     </div>
-                    <button class="bg-[#D03328] hover:bg-[#b02218] text-white p-2 border-[2px] border-white rounded-full transition-colors shadow-md">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <button class="md:hidden p-2 bg-black border-2 border-white rounded-md" onclick="toggleSidebar()">
+                        <i data-lucide="menu" class="w-5 h-5 text-white"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Body Container (Sidebar + Main) -->
-        <div class="flex flex-1 overflow-hidden">
+        <!-- Body Container -->
+        <div class="flex flex-1 overflow-hidden relative">
             
-            <!-- Left Sidebar -->
-            <aside class="w-64 bg-[#1A1A1A] text-white border-r-[4px] border-black flex flex-col flex-shrink-0 z-40 shadow-[4px_0_10px_rgba(0,0,0,0.2)] overflow-y-auto custom-scroll">
+            <!-- Left Sidebar (Restored to Original Style + New Filters) -->
+            <aside id="sidebar" class="absolute md:relative w-64 bg-[#1A1A1A] text-white border-r-[4px] border-black flex flex-col h-full z-40 shadow-[4px_0_10px_rgba(0,0,0,0.5)] transform -translate-x-full md:translate-x-0 transition-transform duration-300">
                 
-                <!-- Filter Section (Top of Sidebar) -->
+                <!-- Filter Section -->
                 <div class="p-5 border-b-2 border-gray-800 bg-[#222]">
                     <h3 class="text-[#EAB936] text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                         <i data-lucide="filter" class="w-3 h-3"></i> 篩選條件 Filters
@@ -128,10 +188,23 @@
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">年度 Year</label>
                             <div class="relative">
-                                <select class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                <select id="year-filter" onchange="updateDateOptions(); filterData();" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                    <option value="all">全部年度 All</option>
                                     <option value="2025">2025 年度</option>
                                     <option value="2024">2024 年度</option>
                                     <option value="2023">2023 年度</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Session/Date Filter (Added) -->
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">場次 Session</label>
+                            <div class="relative">
+                                <select id="date-filter" onchange="filterData()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                    <option value="all">全部場次 All</option>
+                                    <!-- Populated by JS -->
                                 </select>
                                 <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
                             </div>
@@ -141,16 +214,13 @@
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">職類 Profession</label>
                             <div class="relative">
-                                <select class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                <select id="profession-filter" onchange="filterData()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
                                     <option value="all">全部職類 All</option>
                                     <option value="西醫">西醫</option>
                                     <option value="牙醫">牙醫</option>
                                     <option value="中醫">中醫</option>
                                     <option value="護理">護理</option>
-                                    <option value="藥事">藥事</option>
-                                    <option value="醫事放射">醫事放射</option>
-                                    <option value="醫事檢驗">醫事檢驗</option>
-                                    <option value="其他">其他...</option>
+                                    <option value="藥師">藥師</option>
                                 </select>
                                 <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
                             </div>
@@ -158,65 +228,62 @@
                     </div>
                 </div>
 
-                <!-- Navigation Menu -->
-                <nav class="p-4 space-y-8 flex-1">
+                <!-- Navigation Menu (Restored Original Layout) -->
+                <nav class="p-4 space-y-8 flex-1 overflow-y-auto custom-scroll">
                     
-                    <!-- Group 1: Survey Entry -->
-                    <div>
-                        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2 border-l-2 border-[#D03328]">
-                            問卷填寫 Survey Entry
-                        </h3>
-                        <div class="space-y-2">
-                            <a href="osce_evaluation_form.html" target="_blank" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all group">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-bold text-sm">考官評核 SP</span>
-                                    <i data-lucide="external-link" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                </div>
-                                <span class="text-[10px] text-gray-400 group-hover:text-gray-300">Examiner to SP</span>
-                            </a>
-                            
-                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
-                                <span class="font-bold text-sm block">考官滿意度</span>
-                                <span class="text-[10px] text-gray-400">Examiner Feedback</span>
-                            </a>
-
-                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
-                                <span class="font-bold text-sm block">SP 滿意度</span>
-                                <span class="text-[10px] text-gray-400">SP Feedback</span>
-                            </a>
-
-                            <a href="#" onclick="alert('建置中...')" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
-                                <span class="font-bold text-sm block">考生回饋</span>
-                                <span class="text-[10px] text-gray-400">Student Feedback</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Group 2: Dashboard -->
+                    <!-- Group 1: Dashboard -->
                     <div>
                         <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2 border-l-2 border-[#1C4E8C]">
                             儀表板 Dashboard
                         </h3>
                         <div class="space-y-2">
-                            <!-- Active Dashboard Link -->
-                            <a href="#" class="nav-link active block p-3 border-2 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform -translate-y-1">
+                            <div onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link active block p-3 border-2 transition-all">
                                 <div class="flex items-center gap-2">
                                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                                     <span class="font-bold text-sm">綜合分析總覽</span>
                                 </div>
-                            </a>
+                            </div>
 
-                            <a href="#" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                            <div onclick="switchView('examiner-sp-analysis')" id="nav-examiner-sp-analysis" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
                                 <div class="flex items-center gap-2">
-                                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                                    <i data-lucide="clipboard-check" class="w-4 h-4"></i>
                                     <span class="font-bold text-sm">考官評核 SP 分析</span>
                                 </div>
-                            </a>
+                            </div>
 
-                            <a href="#" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                            <div onclick="switchView('examiner-analysis')" id="nav-examiner-analysis" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
                                 <div class="flex items-center gap-2">
-                                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                                    <span class="font-bold text-sm">滿意度交叉分析</span>
+                                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">考官回饋分析</span>
+                                </div>
+                            </div>
+
+                            <div onclick="switchView('student-analysis')" id="nav-student-analysis" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">考生回饋分析</span>
+                                </div>
+                            </div>
+
+                            <div onclick="switchView('sp-analysis')" id="nav-sp-analysis" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all opacity-70 hover:opacity-100">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="smile" class="w-4 h-4"></i>
+                                    <span class="font-bold text-sm">標準化病人回饋分析</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group 2: Survey Entry -->
+                    <div>
+                        <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2 border-l-2 border-[#D03328]">
+                            問卷填寫 Survey Entry
+                        </h3>
+                        <div class="space-y-2">
+                            <a href="https://luyun1224.github.io/ChimeiOSCE/SP-Assessment-Examiner.html" target="_blank" class="nav-link block p-3 border-2 border-transparent hover:border-white transition-all group">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-sm">考官評核 SP</span>
+                                    <i data-lucide="external-link" class="w-3 h-3 group-hover:text-[#EAB936] transition-colors"></i>
                                 </div>
                             </a>
                         </div>
@@ -226,168 +293,751 @@
 
                 <!-- Footer Info -->
                 <div class="p-4 text-[10px] text-gray-500 text-center border-t-2 border-gray-800">
-                    <p>v1.0.2 Beta</p>
+                    <p>v1.5.0 (SP Privacy & Insights)</p>
                     <p>Designed for Chimei</p>
                 </div>
             </aside>
 
-            <!-- Main Content Area (Scrollable) -->
-            <main class="flex-1 overflow-y-auto bg-[#FCFBF9] p-4 md:p-8 relative">
+            <!-- Main Content Area (Retaining Advanced Features) -->
+            <main class="flex-1 overflow-y-auto bg-[#FCFBF9] relative custom-scroll">
                 
-                <!-- Header of Main Content -->
-                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b-2 border-black pb-4">
-                    <div>
-                        <h2 class="text-3xl font-black flex items-center gap-3">
-                            <span class="w-4 h-8 bg-[#D03328] border-2 border-black block"></span>
-                            綜合分析總覽
-                        </h2>
-                        <p class="text-gray-500 font-bold mt-1 ml-7">Overview Analytics</p>
+                <!-- Close sidebar overlay for mobile -->
+                <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+                <!-- VIEW 1: DASHBOARD (Landing) -->
+                <div id="view-dashboard" class="p-4 md:p-8 animate-fade-in block">
+                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b-2 border-black pb-4">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-black flex flex-col md:flex-row md:items-center gap-3 leading-tight">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-4 h-8 bg-[#D03328] border-2 border-black block flex-shrink-0"></span>
+                                    <span>奇美醫院臨床技能中心</span>
+                                </div>
+                                <span>OSCE成效儀表板</span>
+                            </h2>
+                            <p class="text-gray-500 font-bold mt-1 ml-7">OSCE Effectiveness & Insight Dashboard</p>
+                        </div>
+                        <div class="text-right">
+                             <button onclick="fetchData()" class="bg-black text-white px-4 py-2 text-xs font-bold hover:bg-[#EAB936] hover:text-black transition-colors border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1"></i> REFRESH DATA
+                            </button>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-[#1C4E8C]">資料更新時間</p>
-                        <p class="text-xs text-gray-400 font-mono">2025-07-23 14:30:00</p>
+
+                    <div class="bg-white border-[3px] border-black p-8 bauhaus-shadow flex flex-col items-center justify-center text-gray-400 min-h-[300px]">
+                        <div class="bg-[#EAB936] p-4 rounded-full border-[3px] border-black mb-4">
+                            <i data-lucide="bar-chart-2" class="w-12 h-12 text-black"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-black mb-2 text-center">歡迎使用成效分析系統</h3>
+                        <p class="text-sm max-w-md text-center mb-6 text-gray-600">本系統提供數據視覺化與行動建議。請從左側選單選擇「考官評核 SP 分析」以查看詳細八大面向雷達圖與改善建議。</p>
+                        <button onclick="switchView('examiner-sp-analysis')" class="bg-[#1C4E8C] text-white px-8 py-3 font-bold border-[3px] border-black shadow-[6px_6px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all flex items-center gap-2">
+                            <span>開始分析</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <!-- KPI 1 -->
-                    <div class="bg-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                        <div class="absolute right-[-10px] top-[-10px] w-16 h-16 bg-gray-100 rounded-full z-0 group-hover:bg-[#EAB936] transition-colors"></div>
-                        <div class="relative z-10">
-                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Total Surveys</p>
-                            <h3 class="text-4xl font-black mt-1">452</h3>
-                            <p class="text-xs font-bold text-[#1C4E8C] mt-2 flex items-center gap-1">
-                                <i data-lucide="trending-up" class="w-3 h-3"></i> +12% vs last year
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- KPI 2 -->
-                    <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                        <div class="relative z-10">
-                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Examiner Score</p>
-                            <h3 class="text-4xl font-black mt-1 text-[#EAB936]">4.8</h3>
-                            <p class="text-xs font-bold text-gray-400 mt-2">Average Rating (1-5)</p>
-                        </div>
-                    </div>
-
-                    <!-- KPI 3 -->
-                    <div class="bg-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                        <div class="relative z-10">
-                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Participating SPs</p>
-                            <h3 class="text-4xl font-black mt-1">18</h3>
-                            <p class="text-xs font-bold text-[#D03328] mt-2">Across 12 Stations</p>
-                        </div>
-                    </div>
-
-                    <!-- KPI 4 -->
-                    <div class="bg-[#D03328] text-white border-[3px] border-black p-4 bauhaus-shadow relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                        <div class="relative z-10">
-                            <p class="text-xs font-black text-white/70 uppercase tracking-widest">Pending Feedback</p>
-                            <h3 class="text-4xl font-black mt-1">24</h3>
-                            <p class="text-xs font-bold text-white/80 mt-2">Need Action</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- VIEW 2: EXAMINER SP ANALYSIS (Main Analysis) -->
+                <div id="view-examiner-sp-analysis" class="p-4 md:p-8 animate-fade-in hidden">
                     
-                    <!-- Main Chart (Left) -->
-                    <div class="lg:col-span-2 bg-white border-[3px] border-black p-6 bauhaus-shadow">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold border-l-4 border-[#1C4E8C] pl-3">各站點評分平均</h3>
-                            <button class="text-xs font-bold border-2 border-black px-2 py-1 hover:bg-black hover:text-white transition-colors">Download CSV</button>
+                    <!-- Title Section -->
+                    <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-black flex items-center gap-3">
+                                <span class="w-4 h-8 bg-[#1C4E8C] border-2 border-black block"></span>
+                                考官評核 SP 分析
+                            </h2>
+                            <p class="text-gray-500 font-bold mt-1 ml-7">Examiner Assessment: 8 Dimensions & Insights</p>
                         </div>
+                        <div class="text-right hidden md:block">
+                             <div class="text-xs text-gray-400 font-bold">DATA SOURCE</div>
+                             <div class="font-mono text-sm">Live Google Sheet</div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards (Top Row) -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <!-- Total Records -->
+                        <div class="bg-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden group">
+                            <div class="absolute right-[-10px] top-[-10px] w-20 h-20 bg-gray-100 rounded-full z-0 group-hover:bg-[#EAB936] transition-colors"></div>
+                            <div class="relative z-10">
+                                <p class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">總問卷樣本數</p>
+                                <h3 class="text-4xl font-black" id="stat-total-records">--</h3>
+                                <div class="w-8 h-1 bg-black mt-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Avg Score -->
+                        <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
+                            <div class="relative z-10">
+                                <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">平均總體得分</p>
+                                <h3 class="text-4xl font-black text-[#EAB936]" id="stat-avg-score">--</h3>
+                                <p class="text-[10px] text-gray-500 mt-1">(反向題 Q2, Q3 已校正)</p>
+                            </div>
+                        </div>
+
+                        <!-- Reliability -->
+                        <div class="bg-[#D03328] text-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
+                            <div class="relative z-10">
+                                <p class="text-xs font-black text-white/80 uppercase tracking-widest mb-1">Q1 可靠一致性</p>
+                                <h3 class="text-4xl font-black text-white" id="stat-q1-score">--</h3>
+                                <p class="text-[10px] text-white/60 mt-1">Core Competency</p>
+                            </div>
+                        </div>
+
+                        <!-- Q8 (Positive now) -->
+                        <div class="bg-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
+                             <div class="absolute right-[-10px] top-[-10px] w-20 h-20 bg-blue-50 rounded-full z-0"></div>
+                            <div class="relative z-10">
+                                <p class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Q8 專業態度</p>
+                                <h3 class="text-4xl font-black text-[#1C4E8C]" id="stat-q8-score">--</h3>
+                                <p class="text-[10px] text-gray-400 mt-1">Higher is Better (Scale: 1-5)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         
-                        <!-- CSS Bar Chart Simulation -->
-                        <div class="space-y-4 pt-4">
-                            <!-- Bar 1 -->
-                            <div class="flex items-center gap-4">
-                                <span class="w-8 text-xs font-bold text-gray-500">S1</span>
-                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
-                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 92%">4.8</div>
+                        <!-- Radar Chart: 8 Dimensions -->
+                        <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold border-l-4 border-[#1C4E8C] pl-3">八大面向能力分析</h3>
+                                <span class="bg-gray-100 text-xs font-bold px-2 py-1 rounded border border-gray-300">Radar Chart</span>
+                            </div>
+                            <div class="flex-1 min-h-[320px] relative">
+                                <canvas id="chart-radar"></canvas>
+                            </div>
+                            <div class="mt-4 p-3 bg-gray-50 border border-gray-200 text-xs text-gray-600 rounded">
+                                <span class="font-bold text-black">說明：</span> 
+                                大部分題目分數越高越好。
+                                <span class="text-[#D03328] font-bold">僅 Q2, Q3 為反向題</span> (系統已自動校正：圖表越外圍越佳)。
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart: Scores by Profession -->
+                        <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold border-l-4 border-[#EAB936] pl-3">各職類評分差異</h3>
+                                <span class="bg-gray-100 text-xs font-bold px-2 py-1 rounded border border-gray-300">Bar Chart</span>
+                            </div>
+                            <div class="flex-1 min-h-[320px] relative">
+                                <canvas id="chart-profession"></canvas>
+                            </div>
+                            <div class="mt-4 p-3 bg-gray-50 border border-gray-200 text-xs text-gray-600 rounded">
+                                <span class="font-bold text-black">洞察：</span> 比較不同職類考官對 SP 的評分標準差異，有助於標準化訓練。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW SECTION: Data to Action Loop (Insight Engine) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        
+                        <!-- Left: Qualitative Keywords -->
+                        <div class="lg:col-span-2 bg-white border-[3px] border-black p-6 bauhaus-shadow">
+                            <div class="flex items-center gap-2 mb-6 border-b-2 border-gray-100 pb-2">
+                                <div class="bg-black text-white p-1.5"><i data-lucide="message-square" class="w-4 h-4"></i></div>
+                                <h3 class="text-xl font-bold">考官質性回饋與關鍵字</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">高頻關鍵字 (Top Keywords)</h4>
+                                    <div id="keyword-cloud" class="flex flex-wrap gap-2 min-h-[100px] content-start">
+                                        <!-- Injected via JS -->
+                                        <span class="text-gray-400 italic text-sm">Analyzing text...</span>
+                                    </div>
+                                </div>
+                                <div class="border-l-2 border-gray-100 pl-4">
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">最新評語 (Latest Comments)</h4>
+                                    <div id="recent-comments-list" class="space-y-3 max-h-[200px] overflow-y-auto custom-scroll pr-2">
+                                        <!-- Injected via JS -->
+                                    </div>
                                 </div>
                             </div>
-                            <!-- Bar 2 -->
-                            <div class="flex items-center gap-4">
-                                <span class="w-8 text-xs font-bold text-gray-500">S2</span>
-                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
-                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 85%">4.5</div>
+                        </div>
+
+                        <!-- Right: Action Plan & SP Watchlist -->
+                        <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-6 bauhaus-shadow relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-[#2a2a2a] rounded-bl-full -z-0"></div>
+                            
+                            <div class="relative z-10 flex flex-col h-full">
+                                <div class="flex items-center gap-2 mb-4 border-b border-gray-700 pb-2">
+                                    <div class="bg-[#EAB936] text-black p-1.5"><i data-lucide="zap" class="w-4 h-4"></i></div>
+                                    <h3 class="text-xl font-bold">品質改善行動 (Action)</h3>
                                 </div>
-                            </div>
-                            <!-- Bar 3 (Low) -->
-                            <div class="flex items-center gap-4">
-                                <span class="w-8 text-xs font-bold text-gray-500">S3</span>
-                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
-                                    <div class="absolute top-0 left-0 h-full bg-[#D03328] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 65%">3.2</div>
-                                </div>
-                            </div>
-                            <!-- Bar 4 -->
-                            <div class="flex items-center gap-4">
-                                <span class="w-8 text-xs font-bold text-gray-500">S4</span>
-                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
-                                    <div class="absolute top-0 left-0 h-full bg-[#EAB936] bar-animate flex items-center justify-end pr-2 text-black font-bold" style="--h: 100%; width: 95%">4.9</div>
-                                </div>
-                            </div>
-                             <!-- Bar 5 -->
-                             <div class="flex items-center gap-4">
-                                <span class="w-8 text-xs font-bold text-gray-500">S5</span>
-                                <div class="flex-1 bg-gray-100 h-8 rounded-sm relative border border-black/20">
-                                    <div class="absolute top-0 left-0 h-full bg-[#1C4E8C] bar-animate flex items-center justify-end pr-2 text-[10px] text-white font-bold" style="--h: 100%; width: 88%">4.6</div>
+
+                                <div class="flex-1">
+                                    <div class="mb-4">
+                                        <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">優先改善面向 (Priority)</h4>
+                                        <div id="action-priority" class="text-lg font-bold">--</div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <h4 class="text-xs font-bold text-[#D03328] uppercase tracking-wider mb-2 flex items-center gap-1">
+                                            <i data-lucide="alert-circle" class="w-3 h-3"></i> 需關注 SP 名單 (隱私保護)
+                                        </h4>
+                                        <ul id="sp-watchlist" class="text-sm space-y-2 bg-[#222] p-2 rounded border border-gray-700">
+                                            <li class="text-gray-400 italic">分析中...</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">AI 建議行動</h4>
+                                        <p id="action-suggestion" class="text-xs text-gray-300 leading-relaxed">...</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Secondary Chart (Right) -->
-                    <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-6 bauhaus-shadow relative overflow-hidden">
-                        <h3 class="text-xl font-bold mb-6 border-l-4 border-[#EAB936] pl-3 relative z-10">職類參與比例</h3>
-                        
-                        <div class="flex items-center justify-center relative z-10 my-8">
-                             <!-- CSS Donut -->
-                             <div class="relative w-40 h-40 rounded-full border-[4px] border-white"
-                                 style="background: conic-gradient(
-                                    #D03328 0% 40%, 
-                                    #EAB936 40% 70%, 
-                                    #1C4E8C 70% 100%
-                                 );">
-                                 <div class="absolute inset-0 m-auto w-20 h-20 bg-[#1A1A1A] rounded-full border-[4px] border-white"></div>
-                             </div>
+                    <!-- Raw Data Table -->
+                    <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold border-l-4 border-gray-400 pl-3">詳細數據列表</h3>
+                            <button onclick="exportCSV()" class="text-xs font-bold underline hover:text-[#1C4E8C]">匯出 CSV</button>
                         </div>
-
-                        <div class="space-y-3 relative z-10">
-                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
-                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#D03328]"></span> 西醫</span>
-                                <span class="font-bold">40%</span>
-                            </div>
-                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
-                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#EAB936]"></span> 護理</span>
-                                <span class="font-bold">30%</span>
-                            </div>
-                            <div class="flex justify-between text-sm border-b border-gray-700 pb-1">
-                                <span class="flex items-center gap-2"><span class="w-2 h-2 bg-[#1C4E8C]"></span> 其他</span>
-                                <span class="font-bold">30%</span>
-                            </div>
+                        <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead class="bg-black text-white sticky top-0">
+                                    <tr>
+                                        <th class="p-3 whitespace-nowrap">日期</th>
+                                        <th class="p-3 whitespace-nowrap">SP姓名</th>
+                                        <th class="p-3 whitespace-nowrap">考官</th>
+                                        <th class="p-3 whitespace-nowrap">站號</th>
+                                        <th class="p-3 whitespace-nowrap">職類</th>
+                                        <th class="p-3 whitespace-nowrap">Q1</th>
+                                        <th class="p-3 whitespace-nowrap text-red-300">Q2(反)</th>
+                                        <th class="p-3 whitespace-nowrap text-red-300">Q3(反)</th>
+                                        <th class="p-3 whitespace-nowrap">Q4</th>
+                                        <th class="p-3 whitespace-nowrap">Q5</th>
+                                        <th class="p-3 whitespace-nowrap">Q6</th>
+                                        <th class="p-3 whitespace-nowrap">Q7</th>
+                                        <th class="p-3 whitespace-nowrap">Q8</th>
+                                        <th class="p-3 min-w-[200px]">文字評語</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-comments-body">
+                                    <!-- Data injected by JS -->
+                                    <tr>
+                                        <td colspan="14" class="p-8 text-center text-gray-400">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-
-                        <!-- Decor -->
-                        <div class="absolute bottom-[-20px] right-[-20px] w-24 h-24 border-[4px] border-[#333] rounded-full z-0"></div>
                     </div>
                 </div>
-                
-                <footer class="text-center text-xs text-gray-400 mt-12 pb-4">
-                    2025 © 奇美醫院臨床技能中心 製
-                </footer>
+
+                <!-- Other Views (Placeholders) -->
+                <div id="view-examiner-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">考官回饋分析 - 建置中</div></div>
+                <div id="view-student-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">考生回饋分析 - 建置中</div></div>
+                <div id="view-sp-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">SP 回饋分析 - 建置中</div></div>
 
             </main>
         </div>
     </div>
 
-    <!-- Initialize Icons -->
+    <!-- Initialization & Logic -->
     <script>
+        // --- CONFIGURATION ---
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzAZfDJS21_o7WIrXCpW0w-Hx8i_DtHQVSvIhj1nsIyge752nhDP_7caE1VzZvvEMtP/exec"; 
+        const USE_MOCK_DATA = false; 
+
+        let globalData = [];
+        let radarChartInstance = null;
+        let barChartInstance = null;
+
+        // Initialize Icons
         lucide.createIcons();
+        
+        // Initial Fetch
+        checkConfigAndFetch();
+
+        function checkConfigAndFetch() {
+            if (!GAS_API_URL || (GAS_API_URL.includes("YOUR_") && !USE_MOCK_DATA)) {
+                document.getElementById('config-alert').classList.remove('hidden');
+                showToast("請設定 GAS_API_URL", "error");
+            } else {
+                fetchData();
+            }
+        }
+
+        // --- DATA FETCHING ---
+        async function fetchData() {
+            const statusDot = document.getElementById('system-status-dot');
+            const statusText = document.getElementById('system-status-text');
+            
+            statusDot.className = "w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse";
+            statusText.innerText = "Fetching...";
+            
+            try {
+                const response = await fetch(GAS_API_URL);
+                const data = await response.json();
+                
+                if(data.error) throw new Error(data.error);
+
+                // Initial Process
+                globalData = data;
+                
+                // Populate Filters First
+                populateDateFilter(globalData);
+                
+                // Process with default filters (all)
+                filterData();
+                
+                statusDot.className = "w-2 h-2 bg-green-500 rounded-full mr-2";
+                statusText.innerText = "System Online";
+                showToast("資料更新完成", "success");
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                statusDot.className = "w-2 h-2 bg-red-600 rounded-full mr-2";
+                statusText.innerText = "Error";
+                showToast("讀取失敗: " + error.message, "error");
+            }
+        }
+
+        // --- FILTER LOGIC (NEW) ---
+        function populateDateFilter(data) {
+            const dateSelect = document.getElementById('date-filter');
+            // Keep "All" option
+            dateSelect.innerHTML = '<option value="all">全部場次 All Sessions</option>';
+            
+            // Extract Unique Dates
+            const uniqueDates = [...new Set(data.map(item => {
+                // Handle various date formats from Sheet
+                if(!item.examDate) return "";
+                let d = item.examDate;
+                if(typeof d === 'string' && d.length > 10) d = d.substring(0, 10);
+                return d;
+            }))].filter(d => d).sort().reverse();
+
+            uniqueDates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dateSelect.appendChild(option);
+            });
+        }
+
+        function updateDateOptions() {
+             // Optional: If Year is selected, filter the Date options (Advanced UX)
+             // For now, keeping it simple
+        }
+
+        function filterData() {
+            const prof = document.getElementById('profession-filter').value;
+            const year = document.getElementById('year-filter').value;
+            const date = document.getElementById('date-filter').value;
+            
+            let filtered = globalData.filter(d => {
+                // 1. Profession Filter
+                if(prof !== 'all' && !d.profession.includes(prof)) return false;
+                
+                // Date Handling
+                let dStr = d.examDate;
+                if(typeof dStr === 'string' && dStr.length > 10) dStr = dStr.substring(0, 10);
+                
+                // 2. Year Filter
+                if(year !== 'all' && (!dStr || !dStr.includes(year))) return false;
+
+                // 3. Date/Session Filter
+                if(date !== 'all' && dStr !== date) return false;
+
+                return true;
+            });
+
+            processData(filtered);
+        }
+
+        // --- DATA PROCESSING & RENDERING ---
+        function processData(data) {
+            
+            // 1. Calculate KPI Stats
+            const total = data.length;
+            let totalSum = 0;
+            let q1Sum = 0;
+            let q8Sum = 0;
+            let count = 0;
+            
+            // For Radar Chart
+            let qSums = {q1:0, q2:0, q3:0, q4:0, q5:0, q6:0, q7:0, q8:0};
+            
+            // For Profession Bar Chart
+            let profStats = {}; 
+
+            // For SP Watchlist
+            let spPerformance = {};
+
+            // Text Analysis Arrays
+            let allComments = [];
+
+            data.forEach(row => {
+                const s = row.scores || {};
+                
+                // Normalize scores: Q2, Q3 are reverse questions (Low is good).
+                // Q8 is NOW POSITIVE (User Request).
+
+                // Raw Sums
+                const q1 = s.q1||0; const q2 = s.q2||0; const q3 = s.q3||0; const q4 = s.q4||0;
+                const q5 = s.q5||0; const q6 = s.q6||0; const q7 = s.q7||0; const q8 = s.q8||0;
+
+                // For Average Total Score 
+                // We should invert neg questions for the average to make sense (Higher average = Better performance)
+                // Q2, Q3: Invert (assuming scale 1-5, inverted is 6-score)
+                let adjustedQ2 = (q2 > 0) ? (6 - q2) : 0;
+                let adjustedQ3 = (q3 > 0) ? (6 - q3) : 0;
+                
+                let rowAvg = (q1+adjustedQ2+adjustedQ3+q4+q5+q6+q7+q8)/8; 
+                totalSum += rowAvg;
+                q1Sum += q1;
+                q8Sum += q8;
+                count++;
+
+                // Radar Sums (INVERTING NEGATIVE Qs for Visualization: 6 - score)
+                qSums.q1 += q1;
+                qSums.q2 += (6 - q2); // Inverted
+                qSums.q3 += (6 - q3); // Inverted
+                qSums.q4 += q4;
+                qSums.q5 += q5;
+                qSums.q6 += q6;
+                qSums.q7 += q7;
+                qSums.q8 += q8; // POSITIVE NOW
+
+                // Profession Grouping
+                const p = row.profession || "其他";
+                if(!profStats[p]) profStats[p] = {sum:0, count:0};
+                profStats[p].sum += rowAvg; 
+                profStats[p].count += 1;
+
+                // SP Performance Tracking (Using Masked Name)
+                let rawName = row.spName || row.SPName || "未知SP"; // Check multiple keys
+                // If not found in keys, maybe user put it in "examinerName" temporarily? No, stick to new key.
+                
+                let spNameMasked = maskName(rawName);
+                if(!spPerformance[spNameMasked]) spPerformance[spNameMasked] = {sum:0, count:0};
+                spPerformance[spNameMasked].sum += rowAvg;
+                spPerformance[spNameMasked].count += 1;
+
+                // Collect Comments
+                if(row.generalComment) allComments.push(row.generalComment);
+            });
+
+            // Update DOM KPIs
+            document.getElementById('stat-total-records').innerText = total;
+            document.getElementById('stat-avg-score').innerText = count ? (totalSum / count).toFixed(1) : "-";
+            document.getElementById('stat-q1-score').innerText = count ? (q1Sum / count).toFixed(1) : "-";
+            document.getElementById('stat-q8-score').innerText = count ? (q8Sum / count).toFixed(1) : "-";
+
+            // Render Visuals
+            if (total > 0) {
+                renderRadarChart(qSums, total);
+                renderProfessionChart(profStats);
+                renderInsights(qSums, total, allComments, spPerformance); // Updated with SP data
+            }
+
+            renderTable(data);
+        }
+
+        // --- NEW: SP NAME MASKING ---
+        function maskName(name) {
+            if (!name || name === "未知SP") return name;
+            if (name.length <= 1) return name + "O";
+            // Return first char + "OO" (e.g., 陳OO)
+            return name.charAt(0) + "OO";
+        }
+
+        // --- NEW: QUALITATIVE INSIGHT ENGINE ---
+        function renderInsights(qSums, total, comments, spPerformance) {
+            // 1. Keyword Cloud (Simulated NLP)
+            const stopWords = ["無", "沒有", "sp", "的", "很", "也", "了", "有", "表現", "學生", "考生", "good", "ok"];
+            let wordCounts = {};
+            
+            comments.forEach(c => {
+                const words = c.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()。，、！]/g," ").split(/\s+/);
+                words.forEach(w => {
+                    if(w.length > 1 && !stopWords.includes(w.toLowerCase())) {
+                        wordCounts[w] = (wordCounts[w] || 0) + 1;
+                    }
+                });
+            });
+
+            const sortedWords = Object.entries(wordCounts)
+                .sort((a,b) => b[1] - a[1])
+                .slice(0, 8);
+
+            const cloudContainer = document.getElementById('keyword-cloud');
+            cloudContainer.innerHTML = '';
+            sortedWords.forEach(([word, count]) => {
+                const tag = document.createElement('span');
+                const isNeg = ["小聲", "矛盾", "不自然", "過度", "差"].some(n => word.includes(n));
+                tag.className = `keyword-tag ${isNeg ? 'keyword-neg' : 'keyword-pos'}`;
+                tag.textContent = `${word} (${count})`;
+                cloudContainer.appendChild(tag);
+            });
+
+            // Recent Comments
+            const listContainer = document.getElementById('recent-comments-list');
+            listContainer.innerHTML = '';
+            comments.slice(-5).reverse().forEach(c => {
+                const div = document.createElement('div');
+                div.className = "text-xs border-b border-gray-100 pb-1 mb-1 text-gray-600";
+                div.innerText = `"${c}"`;
+                listContainer.appendChild(div);
+            });
+
+            // 2. SP Watchlist (Lowest 3)
+            const sortedSPs = Object.entries(spPerformance)
+                .map(([name, data]) => ({name, avg: data.sum/data.count, count: data.count}))
+                .sort((a,b) => a.avg - b.avg) // Ascending (Low to High)
+                .slice(0, 3); // Top 3 worst
+
+            const spListEl = document.getElementById('sp-watchlist');
+            spListEl.innerHTML = '';
+            if(sortedSPs.length > 0) {
+                sortedSPs.forEach(sp => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center text-xs";
+                    // Only flag if avg is somewhat low (e.g., < 4.0) or just show bottom rank
+                    const colorClass = sp.avg < 3.5 ? "text-red-400 font-bold" : "text-gray-300";
+                    li.innerHTML = `<span>${sp.name}</span> <span class="${colorClass}">${sp.avg.toFixed(1)} <span class="text-[10px] text-gray-500">(${sp.count}筆)</span></span>`;
+                    spListEl.appendChild(li);
+                });
+            } else {
+                spListEl.innerHTML = '<li class="text-gray-500">無足夠數據</li>';
+            }
+
+            // 3. Action Plan Logic
+            const avgs = {
+                "Q1 角色一致": qSums.q1/total,
+                "Q2 避免操弄": qSums.q2/total, 
+                "Q3 避免質疑": qSums.q3/total,
+                "Q4 身體表現": qSums.q4/total,
+                "Q5 表情眼神": qSums.q5/total,
+                "Q6 肢體動作": qSums.q6/total,
+                "Q7 回答自然": qSums.q7/total,
+                "Q8 專業態度": qSums.q8/total
+            };
+
+            let minScore = 6;
+            let weakPoint = "";
+            for (const [key, val] of Object.entries(avgs)) {
+                if(val < minScore) {
+                    minScore = val;
+                    weakPoint = key;
+                }
+            }
+
+            const actions = {
+                "Q1 角色一致": "建議加強標準化劇本的背誦與角色背景故事的內化訓練。",
+                "Q2 避免操弄": "SP 可能過度引導學生。建議舉辦工作坊，練習「被動反應」技巧。",
+                "Q3 避免質疑": "SP 對學生展現過多攻擊性。需調整角色情緒設定，強調教學目標。",
+                "Q4 身體表現": "身體症狀（如疼痛、顫抖）模擬不足。建議引入影片教學或由醫師示範。",
+                "Q5 表情眼神": "眼神接觸或痛苦表情不到位。建議安排「鏡子練習」或表演指導。",
+                "Q6 肢體動作": "肢體語言與口語不一致。需加強非語言溝通的一致性訓練。",
+                "Q7 回答自然": "回答過於生硬或像背稿。建議練習口語化表達，減少專業術語使用。",
+                "Q8 專業態度": "SP 在考試中可能出戲或未維持專業。需強調考場紀律與角色沉浸感。"
+            };
+
+            const suggestion = actions[weakPoint] || "目前各面向表現良好，請持續保持。";
+
+            document.getElementById('action-priority').innerText = weakPoint + ` (Score: ${minScore.toFixed(1)})`;
+            document.getElementById('action-priority').className = "text-lg font-bold text-[#D03328]";
+            document.getElementById('action-suggestion').innerText = suggestion;
+        }
+
+        // --- CHARTS ---
+        function renderRadarChart(qSums, total) {
+            const ctx = document.getElementById('chart-radar').getContext('2d');
+            const avgs = [
+                qSums.q1/total, qSums.q2/total, qSums.q3/total, qSums.q4/total,
+                qSums.q5/total, qSums.q6/total, qSums.q7/total, qSums.q8/total
+            ];
+            
+            const labels = [
+                "Q1 角色一致", 
+                "Q2 避免操弄", 
+                "Q3 避免質疑", 
+                "Q4 身體表現", 
+                "Q5 表情與眼神", 
+                "Q6 肢體動作", 
+                "Q7 回答自然度", 
+                "Q8 專業態度"
+            ];
+
+            if(radarChartInstance) radarChartInstance.destroy();
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '平均得分 (Q2,Q3已反向校正)',
+                        data: avgs,
+                        backgroundColor: 'rgba(234, 185, 54, 0.5)', 
+                        borderColor: '#EAB936',
+                        pointBackgroundColor: '#1A1A1A',
+                        pointBorderColor: '#fff',
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            min: 1, 
+                            max: 5,
+                            ticks: { stepSize: 1, backdropColor: 'transparent', font: {size: 10} },
+                            grid: { color: '#ddd', circular: true },
+                            pointLabels: { 
+                                font: { size: 12, weight: 'bold', family: "'Noto Sans TC', sans-serif" },
+                                color: '#1A1A1A'
+                            }
+                        }
+                    },
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderProfessionChart(profStats) {
+            const ctx = document.getElementById('chart-profession').getContext('2d');
+            const labels = Object.keys(profStats);
+            const data = labels.map(k => (profStats[k].sum / profStats[k].count).toFixed(2));
+
+            if(barChartInstance) barChartInstance.destroy();
+
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '平均評分',
+                        data: data,
+                        backgroundColor: '#1C4E8C',
+                        borderWidth: 2,
+                        borderColor: '#1A1A1A',
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { min: 0, max: 5, grid: {color:'#eee'} },
+                        x: { grid: {display:false} }
+                    },
+                    maintainAspectRatio: false,
+                    plugins: { legend: {display:false} }
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-comments-body');
+            tbody.innerHTML = '';
+            
+            // Limit to 50 rows for performance
+            data.slice(0, 50).forEach(row => {
+                let dateStr = row.examDate;
+                if (dateStr && dateStr.length > 10) dateStr = dateStr.substring(0, 10);
+                
+                // SP Name Masking logic in table
+                const maskedSP = maskName(row.spName || row.SPName);
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-200 hover:bg-gray-50 text-xs";
+                
+                const scoreCell = (val, isNeg) => {
+                    let color = "text-gray-600";
+                    if(isNeg) { if(val>=4) color="text-red-600 font-bold"; }
+                    else { if(val<=2) color="text-red-600 font-bold"; }
+                    return `<td class="p-3 ${color}">${val||'-'}</td>`;
+                };
+
+                const s = row.scores || {};
+
+                tr.innerHTML = `
+                    <td class="p-3 font-mono">${dateStr}</td>
+                    <td class="p-3 font-bold text-[#1C4E8C]">${maskedSP}</td>
+                    <td class="p-3">${row.examinerName || '-'}</td>
+                    <td class="p-3 font-bold">${row.stationNumber}</td>
+                    <td class="p-3"><span class="bg-gray-100 px-2 py-1 rounded">${row.profession}</span></td>
+                    ${scoreCell(s.q1, false)}
+                    ${scoreCell(s.q2, true)}
+                    ${scoreCell(s.q3, true)}
+                    ${scoreCell(s.q4, false)}
+                    ${scoreCell(s.q5, false)}
+                    ${scoreCell(s.q6, false)}
+                    ${scoreCell(s.q7, false)}
+                    ${scoreCell(s.q8, false)}
+                    <td class="p-3 text-gray-500 truncate max-w-[200px]" title="${row.generalComment}">${row.generalComment || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- UTILS ---
+        function switchView(viewName) {
+            const views = ['dashboard', 'examiner-sp-analysis'];
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`view-${v}`).classList.remove('block');
+                
+                const nav = document.getElementById(`nav-${v}`);
+                if(nav) {
+                    nav.classList.remove('active', 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]', 'transform', '-translate-y-1');
+                    nav.classList.add('opacity-70', 'border-transparent');
+                }
+            });
+
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            document.getElementById(`view-${viewName}`).classList.add('block');
+            
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if(activeNav) {
+                activeNav.classList.add('active', 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]', 'transform', '-translate-y-1');
+                activeNav.classList.remove('opacity-70', 'border-transparent');
+            }
+
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function showToast(msg, type) {
+            const modal = document.getElementById('modal-message');
+            modal.innerText = msg;
+            if(type==='error') {
+                 document.getElementById('modal-overlay').classList.remove('hidden');
+                 setTimeout(() => {
+                    document.getElementById('modal-content').classList.remove('scale-95', 'opacity-0');
+                    document.getElementById('modal-content').classList.add('scale-100', 'opacity-100');
+                 }, 10);
+            }
+        }
+
+        function closeModal() {
+             const content = document.getElementById('modal-content');
+             content.classList.remove('scale-100', 'opacity-100');
+             content.classList.add('scale-95', 'opacity-0');
+             setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 200);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.toggle('hidden');
+        }
+
+        function exportCSV() {
+            let csv = "日期,SP姓名,考官,站號,職類,評語\n";
+            globalData.forEach(row => {
+                const sp = maskName(row.spName || row.SPName);
+                csv += `${row.examDate},${sp},${row.examinerName},${row.stationNumber},${row.profession},"${(row.generalComment||'').replace(/"/g, '""')}"\n`;
+            });
+            const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "osce_data.csv";
+            link.click();
+        }
     </script>
 </body>
 </html>
