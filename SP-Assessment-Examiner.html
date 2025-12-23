@@ -162,13 +162,16 @@
 
         const App = () => {
             useEffect(() => {
-                lucide.createIcons();
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
             }, []);
 
             const [formData, setFormData] = useState({
                 examinerName: "",
                 date: new Date().toISOString().split('T')[0],
                 stationNumber: "",
+                spName: "", // 新增 SP 姓名
                 profession: "",
                 otherProfession: "",
                 ratings: {},
@@ -210,6 +213,7 @@
                 if (!formData.examinerName) newErrors.examinerName = "請填寫姓名";
                 if (!formData.date) newErrors.date = "請選擇日期";
                 if (!formData.stationNumber) newErrors.stationNumber = "請選擇站號";
+                if (!formData.spName) newErrors.spName = "請填寫SP姓名"; // 新增驗證
                 if (!formData.profession) newErrors.profession = "請選擇職類";
                 if (formData.profession === "其他" && !formData.otherProfession) {
                     newErrors.otherProfession = "請填寫職類";
@@ -300,6 +304,10 @@
                                             <span className="text-gray-500">考官</span>
                                             <span className="text-[#1C4E8C] text-lg">{formData.examinerName}</span>
                                         </div>
+                                         <div className="flex justify-between border-b-2 border-black pb-2">
+                                            <span className="text-gray-500">SP姓名</span>
+                                            <span className="text-black text-lg">{formData.spName}</span>
+                                        </div>
                                         <div className="flex justify-between border-b-2 border-black pb-2">
                                             <span className="text-gray-500">職類</span>
                                             <span className="text-[#D03328]">{formData.profession === '其他' ? formData.otherProfession : formData.profession}</span>
@@ -348,8 +356,8 @@
                                    alt="Logo" 
                                    className="max-h-20 md:max-h-24 max-w-full object-contain"
                                    onError={(e) => {
-                                       e.target.style.display='none';
-                                       e.target.parentElement.innerHTML = '<span class="text-xs font-bold">LOGO AREA</span>';
+                                        e.target.style.display='none';
+                                        e.target.parentElement.innerHTML = '<span class="text-xs font-bold">LOGO AREA</span>';
                                    }}
                                 />
                             </div>
@@ -411,6 +419,19 @@
                                         </div>
                                     </div>
                                     {errors.stationNumber && <p className="text-[#D03328] font-bold text-xs">{errors.stationNumber}</p>}
+                                </div>
+
+                                {/* SP Name Input (NEW) */}
+                                <div className="space-y-2">
+                                    <label className="font-bold text-sm uppercase tracking-wide">SP 姓名 (標準化病人)</label>
+                                    <input 
+                                        type="text" 
+                                        value={formData.spName}
+                                        onChange={(e) => handleInputChange('spName', e.target.value)}
+                                        className={`w-full p-3 md:p-4 bg-white border-[3px] border-black text-base md:text-lg font-medium transition-transform rounded-none ${errors.spName ? 'bg-red-50 border-[#D03328]' : ''}`}
+                                        placeholder="請輸入 SP 姓名"
+                                    />
+                                    {errors.spName && <p className="text-[#D03328] font-bold text-xs">{errors.spName}</p>}
                                 </div>
 
                                 {/* Profession Dropdown */}
