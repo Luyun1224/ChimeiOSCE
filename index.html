@@ -293,7 +293,7 @@
 
                 <!-- Footer Info -->
                 <div class="p-4 text-[10px] text-gray-500 text-center border-t-2 border-gray-800">
-                    <p>v1.5.0 (SP Privacy & Insights)</p>
+                    <p>v1.5.1 (Unique SP Tracking)</p>
                     <p>Designed for Chimei</p>
                 </div>
             </aside>
@@ -501,7 +501,7 @@
                                 <thead class="bg-black text-white sticky top-0">
                                     <tr>
                                         <th class="p-3 whitespace-nowrap">日期</th>
-                                        <th class="p-3 whitespace-nowrap">SP姓名</th>
+                                        <th class="p-3 whitespace-nowrap">SP姓名 (代碼)</th>
                                         <th class="p-3 whitespace-nowrap">考官</th>
                                         <th class="p-3 whitespace-nowrap">站號</th>
                                         <th class="p-3 whitespace-nowrap">職類</th>
@@ -545,6 +545,7 @@
         let globalData = [];
         let radarChartInstance = null;
         let barChartInstance = null;
+        let globalSpMap = {}; // Stores unique mapping for SP Names
 
         // Initialize Icons
         lucide.createIcons();
@@ -595,7 +596,44 @@
             }
         }
 
-        // --- FILTER LOGIC (NEW) ---
+        // --- SP NAME MAPPING GENERATOR (Prevents Mixing Surnames) ---
+        function generateSPMap(data) {
+            const uniqueNames = [...new Set(data.map(r => r.spName || r.SPName || "未知SP"))];
+            const nameMap = {};
+            const usedDisplayNames = {}; // Track frequency of "陳○明"
+
+            uniqueNames.forEach(name => {
+                if(name === "未知SP") {
+                    nameMap[name] = name;
+                    return;
+                }
+
+                let masked = "";
+                // Strategy: Mask the middle character if length > 2, else mask last
+                // 陳小明 -> 陳○明
+                // 陳明 -> 陳○
+                if (name.length <= 2) {
+                    masked = name.charAt(0) + "○";
+                } else {
+                    // Keep first and last, mask everything in between
+                    masked = name.charAt(0) + "○" + name.slice(-1);
+                }
+
+                // Collision Handling (e.g. 陳小明 & 陳大明 -> both 陳○明)
+                // If collision occurs, append a number
+                if (usedDisplayNames[masked]) {
+                    usedDisplayNames[masked]++;
+                    masked = `${masked} (${usedDisplayNames[masked]})`;
+                } else {
+                    usedDisplayNames[masked] = 1;
+                }
+
+                nameMap[name] = masked;
+            });
+            return nameMap;
+        }
+
+        // --- FILTER LOGIC ---
         function populateDateFilter(data) {
             const dateSelect = document.getElementById('date-filter');
             // Keep "All" option
@@ -651,6 +689,17 @@
         // --- DATA PROCESSING & RENDERING ---
         function processData(data) {
             
+            // Generate Unique Masked Names Map based on current filtered data or global?
+            // Better to generate based on GLOBAL data to maintain consistency across filters,
+            // but here we process 'data' which might be filtered.
+            // Actually, we should generate map from 'globalData' to ensure "陳○明 (1)" is always the same person.
+            // But for simplicity in this flow, we regenerate. Ideally, do it once on fetch.
+            // Let's do it on the current batch to ensure we map what we have.
+            // A better way: Generate globalSpMap once in fetchData.
+            if (Object.keys(globalSpMap).length === 0) {
+                globalSpMap = generateSPMap(globalData);
+            }
+
             // 1. Calculate KPI Stats
             const total = data.length;
             let totalSum = 0;
@@ -708,11 +757,10 @@
                 profStats[p].sum += rowAvg; 
                 profStats[p].count += 1;
 
-                // SP Performance Tracking (Using Masked Name)
-                let rawName = row.spName || row.SPName || "未知SP"; // Check multiple keys
-                // If not found in keys, maybe user put it in "examinerName" temporarily? No, stick to new key.
+                // SP Performance Tracking (Using SMART MASKED Name)
+                let rawName = row.spName || row.SPName || "未知SP";
+                let spNameMasked = globalSpMap[rawName] || rawName; // Use the map!
                 
-                let spNameMasked = maskName(rawName);
                 if(!spPerformance[spNameMasked]) spPerformance[spNameMasked] = {sum:0, count:0};
                 spPerformance[spNameMasked].sum += rowAvg;
                 spPerformance[spNameMasked].count += 1;
@@ -735,14 +783,6 @@
             }
 
             renderTable(data);
-        }
-
-        // --- NEW: SP NAME MASKING ---
-        function maskName(name) {
-            if (!name || name === "未知SP") return name;
-            if (name.length <= 1) return name + "O";
-            // Return first char + "OO" (e.g., 陳OO)
-            return name.charAt(0) + "OO";
         }
 
         // --- NEW: QUALITATIVE INSIGHT ENGINE ---
@@ -941,8 +981,9 @@
                 let dateStr = row.examDate;
                 if (dateStr && dateStr.length > 10) dateStr = dateStr.substring(0, 10);
                 
-                // SP Name Masking logic in table
-                const maskedSP = maskName(row.spName || row.SPName);
+                // SP Name Masking logic in table using the global MAP
+                const rawName = row.spName || row.SPName || "未知SP";
+                const maskedSP = globalSpMap[rawName] || rawName;
 
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-200 hover:bg-gray-50 text-xs";
@@ -1029,7 +1070,8 @@
         function exportCSV() {
             let csv = "日期,SP姓名,考官,站號,職類,評語\n";
             globalData.forEach(row => {
-                const sp = maskName(row.spName || row.SPName);
+                const rawName = row.spName || row.SPName || "未知SP";
+                const sp = globalSpMap[rawName] || rawName;
                 csv += `${row.examDate},${sp},${row.examinerName},${row.stationNumber},${row.profession},"${(row.generalComment||'').replace(/"/g, '""')}"\n`;
             });
             const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' });
