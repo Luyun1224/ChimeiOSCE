@@ -174,7 +174,7 @@
         <!-- Body Container -->
         <div class="flex flex-1 overflow-hidden relative">
             
-            <!-- Left Sidebar (Restored to Original Style + New Filters) -->
+            <!-- Left Sidebar -->
             <aside id="sidebar" class="absolute md:relative w-64 bg-[#1A1A1A] text-white border-r-[4px] border-black flex flex-col h-full z-40 shadow-[4px_0_10px_rgba(0,0,0,0.5)] transform -translate-x-full md:translate-x-0 transition-transform duration-300">
                 
                 <!-- Filter Section -->
@@ -188,7 +188,7 @@
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">年度 Year</label>
                             <div class="relative">
-                                <select id="year-filter" onchange="updateDateOptions(); filterData();" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                <select id="year-filter" onchange="updateDateOptions(); applyGlobalFilters();" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
                                     <option value="all">全部年度 All</option>
                                     <option value="2025">2025 年度</option>
                                     <option value="2024">2024 年度</option>
@@ -198,11 +198,11 @@
                             </div>
                         </div>
 
-                        <!-- Session/Date Filter (Added) -->
+                        <!-- Session/Date Filter -->
                         <div>
                             <label class="text-xs text-gray-400 block mb-1">場次 Session</label>
                             <div class="relative">
-                                <select id="date-filter" onchange="filterData()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                <select id="date-filter" onchange="applyGlobalFilters()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
                                     <option value="all">全部場次 All</option>
                                     <!-- Populated by JS -->
                                 </select>
@@ -210,11 +210,11 @@
                             </div>
                         </div>
 
-                        <!-- Profession Filter -->
-                        <div>
+                        <!-- Profession Filter (Only for SP Analysis) -->
+                        <div id="prof-filter-container">
                             <label class="text-xs text-gray-400 block mb-1">職類 Profession</label>
                             <div class="relative">
-                                <select id="profession-filter" onchange="filterData()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
+                                <select id="profession-filter" onchange="applyGlobalFilters()" class="w-full bg-black border-2 border-gray-600 text-white text-sm p-2 outline-none focus:border-[#EAB936] appearance-none rounded-none cursor-pointer">
                                     <option value="all">全部職類 All</option>
                                     <option value="西醫">西醫</option>
                                     <option value="牙醫">牙醫</option>
@@ -228,7 +228,7 @@
                     </div>
                 </div>
 
-                <!-- Navigation Menu (Restored Original Layout) -->
+                <!-- Navigation Menu -->
                 <nav class="p-4 space-y-8 flex-1 overflow-y-auto custom-scroll">
                     
                     <!-- Group 1: Dashboard -->
@@ -255,6 +255,7 @@
                                 <div class="flex items-center gap-2">
                                     <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
                                     <span class="font-bold text-sm">考官回饋分析</span>
+                                    <span class="text-[10px] bg-[#EAB936] text-black px-1 ml-auto font-bold rounded">NEW</span>
                                 </div>
                             </div>
 
@@ -293,12 +294,12 @@
 
                 <!-- Footer Info -->
                 <div class="p-4 text-[10px] text-gray-500 text-center border-t-2 border-gray-800">
-                    <p>v1.5.1 (Unique SP Tracking)</p>
+                    <p>v2.1.0 (Dual Insight Engine)</p>
                     <p>Designed for Chimei</p>
                 </div>
             </aside>
 
-            <!-- Main Content Area (Retaining Advanced Features) -->
+            <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto bg-[#FCFBF9] relative custom-scroll">
                 
                 <!-- Close sidebar overlay for mobile -->
@@ -317,9 +318,9 @@
                             </h2>
                             <p class="text-gray-500 font-bold mt-1 ml-7">OSCE Effectiveness & Insight Dashboard</p>
                         </div>
-                        <div class="text-right">
-                             <button onclick="fetchData()" class="bg-black text-white px-4 py-2 text-xs font-bold hover:bg-[#EAB936] hover:text-black transition-colors border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
-                                <i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1"></i> REFRESH DATA
+                         <div class="text-right flex gap-2">
+                             <button onclick="fetchAllData()" class="bg-black text-white px-4 py-2 text-xs font-bold hover:bg-[#EAB936] hover:text-black transition-colors border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1"></i> REFRESH ALL
                             </button>
                         </div>
                     </div>
@@ -329,16 +330,20 @@
                             <i data-lucide="bar-chart-2" class="w-12 h-12 text-black"></i>
                         </div>
                         <h3 class="text-2xl font-black text-black mb-2 text-center">歡迎使用成效分析系統</h3>
-                        <p class="text-sm max-w-md text-center mb-6 text-gray-600">本系統提供數據視覺化與行動建議。請從左側選單選擇「考官評核 SP 分析」以查看詳細八大面向雷達圖與改善建議。</p>
-                        <button onclick="switchView('examiner-sp-analysis')" class="bg-[#1C4E8C] text-white px-8 py-3 font-bold border-[3px] border-black shadow-[6px_6px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all flex items-center gap-2">
-                            <span>開始分析</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
+                        <p class="text-sm max-w-md text-center mb-6 text-gray-600">本系統提供多面向的數據視覺化與 AI 行動建議。請從左側選單選擇您欲分析的模組。</p>
+                        <div class="flex gap-4">
+                            <button onclick="switchView('examiner-sp-analysis')" class="bg-[#1C4E8C] text-white px-6 py-3 font-bold border-[3px] border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all flex items-center gap-2">
+                                <span>考官評核 SP 分析</span>
+                            </button>
+                             <button onclick="switchView('examiner-analysis')" class="bg-[#D03328] text-white px-6 py-3 font-bold border-[3px] border-black shadow-[4px_4px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all flex items-center gap-2">
+                                <span>考官回饋分析</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- VIEW 2: EXAMINER SP ANALYSIS (Main Analysis) -->
+                <!-- VIEW 2: EXAMINER SP ANALYSIS (Restored Original) -->
                 <div id="view-examiner-sp-analysis" class="p-4 md:p-8 animate-fade-in hidden">
-                    
                     <!-- Title Section -->
                     <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
                         <div>
@@ -350,115 +355,229 @@
                         </div>
                         <div class="text-right hidden md:block">
                              <div class="text-xs text-gray-400 font-bold">DATA SOURCE</div>
-                             <div class="font-mono text-sm">Live Google Sheet</div>
+                             <div class="font-mono text-sm">SP Assessment Sheet</div>
                         </div>
                     </div>
 
-                    <!-- KPI Cards (Top Row) -->
+                    <!-- KPI Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <!-- Total Records -->
                         <div class="bg-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden group">
                             <div class="absolute right-[-10px] top-[-10px] w-20 h-20 bg-gray-100 rounded-full z-0 group-hover:bg-[#EAB936] transition-colors"></div>
                             <div class="relative z-10">
                                 <p class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">總問卷樣本數</p>
-                                <h3 class="text-4xl font-black" id="stat-total-records">--</h3>
+                                <h3 class="text-4xl font-black" id="sp-stat-total">--</h3>
                                 <div class="w-8 h-1 bg-black mt-2"></div>
                             </div>
                         </div>
-
-                        <!-- Avg Score -->
                         <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
                             <div class="relative z-10">
                                 <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">平均總體得分</p>
-                                <h3 class="text-4xl font-black text-[#EAB936]" id="stat-avg-score">--</h3>
+                                <h3 class="text-4xl font-black text-[#EAB936]" id="sp-stat-avg">--</h3>
                                 <p class="text-[10px] text-gray-500 mt-1">(反向題 Q2, Q3 已校正)</p>
                             </div>
                         </div>
-
-                        <!-- Reliability -->
                         <div class="bg-[#D03328] text-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
                             <div class="relative z-10">
                                 <p class="text-xs font-black text-white/80 uppercase tracking-widest mb-1">Q1 可靠一致性</p>
-                                <h3 class="text-4xl font-black text-white" id="stat-q1-score">--</h3>
+                                <h3 class="text-4xl font-black text-white" id="sp-stat-q1">--</h3>
                                 <p class="text-[10px] text-white/60 mt-1">Core Competency</p>
                             </div>
                         </div>
-
-                        <!-- Q8 (Positive now) -->
                         <div class="bg-white border-[3px] border-black p-5 bauhaus-shadow relative overflow-hidden">
                              <div class="absolute right-[-10px] top-[-10px] w-20 h-20 bg-blue-50 rounded-full z-0"></div>
                             <div class="relative z-10">
                                 <p class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Q8 專業態度</p>
-                                <h3 class="text-4xl font-black text-[#1C4E8C]" id="stat-q8-score">--</h3>
-                                <p class="text-[10px] text-gray-400 mt-1">Higher is Better (Scale: 1-5)</p>
+                                <h3 class="text-4xl font-black text-[#1C4E8C]" id="sp-stat-q8">--</h3>
+                                <p class="text-[10px] text-gray-400 mt-1">Higher is Better</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Main Charts Row -->
+                    <!-- Main Charts -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                        
-                        <!-- Radar Chart: 8 Dimensions -->
                         <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-xl font-bold border-l-4 border-[#1C4E8C] pl-3">八大面向能力分析</h3>
                                 <span class="bg-gray-100 text-xs font-bold px-2 py-1 rounded border border-gray-300">Radar Chart</span>
                             </div>
                             <div class="flex-1 min-h-[320px] relative">
-                                <canvas id="chart-radar"></canvas>
-                            </div>
-                            <div class="mt-4 p-3 bg-gray-50 border border-gray-200 text-xs text-gray-600 rounded">
-                                <span class="font-bold text-black">說明：</span> 
-                                大部分題目分數越高越好。
-                                <span class="text-[#D03328] font-bold">僅 Q2, Q3 為反向題</span> (系統已自動校正：圖表越外圍越佳)。
+                                <canvas id="chart-sp-radar"></canvas>
                             </div>
                         </div>
 
-                        <!-- Bar Chart: Scores by Profession -->
                         <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-xl font-bold border-l-4 border-[#EAB936] pl-3">各職類評分差異</h3>
                                 <span class="bg-gray-100 text-xs font-bold px-2 py-1 rounded border border-gray-300">Bar Chart</span>
                             </div>
                             <div class="flex-1 min-h-[320px] relative">
-                                <canvas id="chart-profession"></canvas>
-                            </div>
-                            <div class="mt-4 p-3 bg-gray-50 border border-gray-200 text-xs text-gray-600 rounded">
-                                <span class="font-bold text-black">洞察：</span> 比較不同職類考官對 SP 的評分標準差異，有助於標準化訓練。
+                                <canvas id="chart-sp-bar"></canvas>
                             </div>
                         </div>
                     </div>
 
-                    <!-- NEW SECTION: Data to Action Loop (Insight Engine) -->
+                    <!-- Insight Engine (SP) -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                        
-                        <!-- Left: Qualitative Keywords -->
                         <div class="lg:col-span-2 bg-white border-[3px] border-black p-6 bauhaus-shadow">
                             <div class="flex items-center gap-2 mb-6 border-b-2 border-gray-100 pb-2">
                                 <div class="bg-black text-white p-1.5"><i data-lucide="message-square" class="w-4 h-4"></i></div>
                                 <h3 class="text-xl font-bold">考官質性回饋與關鍵字</h3>
                             </div>
-                            
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">高頻關鍵字 (Top Keywords)</h4>
-                                    <div id="keyword-cloud" class="flex flex-wrap gap-2 min-h-[100px] content-start">
-                                        <!-- Injected via JS -->
+                                    <div id="sp-keyword-cloud" class="flex flex-wrap gap-2 min-h-[100px] content-start">
                                         <span class="text-gray-400 italic text-sm">Analyzing text...</span>
                                     </div>
                                 </div>
                                 <div class="border-l-2 border-gray-100 pl-4">
                                     <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">最新評語 (Latest Comments)</h4>
-                                    <div id="recent-comments-list" class="space-y-3 max-h-[200px] overflow-y-auto custom-scroll pr-2">
-                                        <!-- Injected via JS -->
-                                    </div>
+                                    <div id="sp-comments-list" class="space-y-3 max-h-[200px] overflow-y-auto custom-scroll pr-2"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right: Action Plan & SP Watchlist -->
                         <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-6 bauhaus-shadow relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-[#2a2a2a] rounded-bl-full -z-0"></div>
+                            <div class="relative z-10 flex flex-col h-full">
+                                <div class="flex items-center gap-2 mb-4 border-b border-gray-700 pb-2">
+                                    <div class="bg-[#EAB936] text-black p-1.5"><i data-lucide="zap" class="w-4 h-4"></i></div>
+                                    <h3 class="text-xl font-bold">品質改善行動</h3>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="mb-4">
+                                        <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">優先改善面向 (Priority)</h4>
+                                        <div id="sp-action-priority" class="text-lg font-bold">--</div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <h4 class="text-xs font-bold text-[#D03328] uppercase tracking-wider mb-2 flex items-center gap-1">
+                                            <i data-lucide="alert-circle" class="w-3 h-3"></i> 需關注 SP 名單
+                                        </h4>
+                                        <ul id="sp-watchlist" class="text-sm space-y-2 bg-[#222] p-2 rounded border border-gray-700">
+                                            <li class="text-gray-400 italic">分析中...</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-2">
+                                        <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">AI 建議行動</h4>
+                                        <p id="sp-action-suggestion" class="text-xs text-gray-300 leading-relaxed">...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow">
+                         <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold border-l-4 border-gray-400 pl-3">詳細數據列表</h3>
+                            <button onclick="exportCSV('sp')" class="text-xs font-bold underline hover:text-[#1C4E8C]">匯出 CSV</button>
+                        </div>
+                        <div class="overflow-x-auto max-h-[300px] custom-scroll">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead class="bg-black text-white sticky top-0">
+                                    <tr>
+                                        <th class="p-3">日期</th><th class="p-3">SP姓名</th><th class="p-3">考官</th><th class="p-3">站號</th>
+                                        <th class="p-3">分數(Q1-Q8)</th><th class="p-3 min-w-[200px]">文字評語</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sp-table-body">
+                                    <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 3: EXAMINER FEEDBACK ANALYSIS (NEW & Enhanced) -->
+                <div id="view-examiner-analysis" class="p-4 md:p-8 animate-fade-in hidden">
+                    
+                    <!-- Title Section -->
+                    <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-black flex items-center gap-3">
+                                <span class="w-4 h-8 bg-[#EAB936] border-2 border-black block"></span>
+                                考官回饋分析
+                            </h2>
+                            <p class="text-gray-500 font-bold mt-1 ml-7">Feedback from Examiners: Satisfaction & Insights</p>
+                        </div>
+                        <div class="text-right flex gap-2">
+                             <div class="hidden md:block text-right mr-2">
+                                 <div class="text-xs text-gray-400 font-bold">DATA SOURCE</div>
+                                 <div class="font-mono text-sm">Examiner Feedback Sheet</div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                         <!-- Total -->
+                         <div class="bg-white border-[3px] border-black p-5 bauhaus-shadow relative">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">回饋樣本數</p>
+                            <h3 class="text-4xl font-black" id="ex-stat-count">--</h3>
+                            <div class="w-8 h-1 bg-[#1C4E8C] mt-2"></div>
+                        </div>
+                        <!-- Avg -->
+                        <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-5 bauhaus-shadow relative">
+                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">平均滿意度 (Q1-Q8)</p>
+                            <h3 class="text-4xl font-black text-[#EAB936]" id="ex-stat-avg">--</h3>
+                            <p class="text-[10px] text-gray-500 mt-1">Scale: 1-5 (Higher is Better)</p>
+                        </div>
+                        <!-- Lowest Dimension -->
+                        <div class="bg-[#D03328] text-white border-[3px] border-black p-5 bauhaus-shadow relative">
+                            <p class="text-xs font-black text-white/80 uppercase tracking-widest mb-1">需關注面向</p>
+                            <h3 class="text-2xl font-black text-white mt-1" id="ex-stat-low">--</h3>
+                            <p class="text-[10px] text-white/60 mt-1">Lowest scoring question</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Chart: Questions -->
+                        <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold border-l-4 border-[#1C4E8C] pl-3">八大面向滿意度分析</h3>
+                            </div>
+                            <div class="flex-1 min-h-[300px] relative">
+                                <canvas id="chart-ex-questions"></canvas>
+                            </div>
+                        </div>
+                        <!-- Chart: Stations -->
+                        <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold border-l-4 border-[#EAB936] pl-3">各測驗站滿意度比較</h3>
+                                <div class="text-xs text-gray-500">找出問題站點</div>
+                            </div>
+                            <div class="flex-1 min-h-[300px] relative">
+                                <canvas id="chart-ex-stations"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insight Engine (Examiner) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <!-- Left: Qualitative Keywords -->
+                        <div class="lg:col-span-2 bg-white border-[3px] border-black p-6 bauhaus-shadow">
+                            <div class="flex items-center gap-2 mb-6 border-b-2 border-gray-100 pb-2">
+                                <div class="bg-black text-white p-1.5"><i data-lucide="book-open" class="w-4 h-4"></i></div>
+                                <h3 class="text-xl font-bold">考題與整體回饋關鍵字</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">高頻建議 (Top Keywords)</h4>
+                                    <div id="ex-keyword-cloud" class="flex flex-wrap gap-2 min-h-[100px] content-start">
+                                        <span class="text-gray-400 italic text-sm">Analyzing...</span>
+                                    </div>
+                                </div>
+                                <div class="border-l-2 border-gray-100 pl-4">
+                                    <h4 class="text-sm font-bold text-gray-500 uppercase mb-2">最新回饋 (Latest Feedback)</h4>
+                                    <div id="ex-comments-list" class="space-y-3 max-h-[200px] overflow-y-auto custom-scroll pr-2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Action Plan -->
+                        <div class="bg-[#1A1A1A] text-white border-[3px] border-black p-6 bauhaus-shadow relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-[#333] rounded-bl-full -z-0"></div>
                             
                             <div class="relative z-10 flex flex-col h-full">
                                 <div class="flex items-center gap-2 mb-4 border-b border-gray-700 pb-2">
@@ -469,66 +588,42 @@
                                 <div class="flex-1">
                                     <div class="mb-4">
                                         <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">優先改善面向 (Priority)</h4>
-                                        <div id="action-priority" class="text-lg font-bold">--</div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <h4 class="text-xs font-bold text-[#D03328] uppercase tracking-wider mb-2 flex items-center gap-1">
-                                            <i data-lucide="alert-circle" class="w-3 h-3"></i> 需關注 SP 名單 (隱私保護)
-                                        </h4>
-                                        <ul id="sp-watchlist" class="text-sm space-y-2 bg-[#222] p-2 rounded border border-gray-700">
-                                            <li class="text-gray-400 italic">分析中...</li>
-                                        </ul>
+                                        <div id="ex-action-priority" class="text-lg font-bold">--</div>
                                     </div>
 
                                     <div class="mb-2">
                                         <h4 class="text-xs font-bold text-[#EAB936] uppercase tracking-wider mb-1">AI 建議行動</h4>
-                                        <p id="action-suggestion" class="text-xs text-gray-300 leading-relaxed">...</p>
+                                        <p id="ex-action-suggestion" class="text-xs text-gray-300 leading-relaxed">...</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Raw Data Table -->
+                     <!-- Data Table -->
                     <div class="bg-white border-[3px] border-black p-6 bauhaus-shadow">
-                        <div class="flex justify-between items-center mb-6">
+                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xl font-bold border-l-4 border-gray-400 pl-3">詳細數據列表</h3>
-                            <button onclick="exportCSV()" class="text-xs font-bold underline hover:text-[#1C4E8C]">匯出 CSV</button>
+                            <button onclick="exportCSV('ex')" class="text-xs font-bold underline hover:text-[#1C4E8C]">匯出 CSV</button>
                         </div>
-                        <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                        <div class="overflow-x-auto max-h-[300px] custom-scroll">
                             <table class="w-full text-left text-sm border-collapse">
                                 <thead class="bg-black text-white sticky top-0">
                                     <tr>
-                                        <th class="p-3 whitespace-nowrap">日期</th>
-                                        <th class="p-3 whitespace-nowrap">SP姓名 (代碼)</th>
-                                        <th class="p-3 whitespace-nowrap">考官</th>
-                                        <th class="p-3 whitespace-nowrap">站號</th>
-                                        <th class="p-3 whitespace-nowrap">職類</th>
-                                        <th class="p-3 whitespace-nowrap">Q1</th>
-                                        <th class="p-3 whitespace-nowrap text-red-300">Q2(反)</th>
-                                        <th class="p-3 whitespace-nowrap text-red-300">Q3(反)</th>
-                                        <th class="p-3 whitespace-nowrap">Q4</th>
-                                        <th class="p-3 whitespace-nowrap">Q5</th>
-                                        <th class="p-3 whitespace-nowrap">Q6</th>
-                                        <th class="p-3 whitespace-nowrap">Q7</th>
-                                        <th class="p-3 whitespace-nowrap">Q8</th>
-                                        <th class="p-3 min-w-[200px]">文字評語</th>
+                                        <th class="p-3">日期</th><th class="p-3">考官</th><th class="p-3">站號</th>
+                                        <th class="p-3">Q1-Q8評分</th><th class="p-3 min-w-[200px]">考題建議(Q9)</th><th class="p-3 min-w-[200px]">整體建議(Q10)</th>
                                     </tr>
                                 </thead>
-                                <tbody id="table-comments-body">
-                                    <!-- Data injected by JS -->
-                                    <tr>
-                                        <td colspan="14" class="p-8 text-center text-gray-400">Loading data...</td>
-                                    </tr>
+                                <tbody id="ex-table-body">
+                                    <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading data...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- Other Views (Placeholders) -->
-                <div id="view-examiner-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">考官回饋分析 - 建置中</div></div>
                 <div id="view-student-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">考生回饋分析 - 建置中</div></div>
                 <div id="view-sp-analysis" class="p-8 hidden"><div class="text-center text-gray-400 mt-20">SP 回饋分析 - 建置中</div></div>
 
@@ -539,545 +634,455 @@
     <!-- Initialization & Logic -->
     <script>
         // --- CONFIGURATION ---
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzAZfDJS21_o7WIrXCpW0w-Hx8i_DtHQVSvIhj1nsIyge752nhDP_7caE1VzZvvEMtP/exec"; 
-        const USE_MOCK_DATA = false; 
-
-        let globalData = [];
-        let radarChartInstance = null;
-        let barChartInstance = null;
-        let globalSpMap = {}; // Stores unique mapping for SP Names
-
-        // Initialize Icons
-        lucide.createIcons();
+        const SP_API_URL = "https://script.google.com/macros/s/AKfycbzAZfDJS21_o7WIrXCpW0w-Hx8i_DtHQVSvIhj1nsIyge752nhDP_7caE1VzZvvEMtP/exec"; 
+        const EXAMINER_API_URL = "https://script.google.com/macros/s/AKfycbz-SVriuVdvHuqdwBV25N1INoeaSoF2VHrob_gZ7aBpxX_XqlfsEdzmmRgNAf4kRhAy/exec";
         
-        // Initial Fetch
-        checkConfigAndFetch();
+        // --- Global State ---
+        let globalSpData = [];
+        let globalExaminerData = [];
+        let globalSpMap = {}; 
+        let currentView = 'dashboard';
+        let charts = {};
 
-        function checkConfigAndFetch() {
-            if (!GAS_API_URL || (GAS_API_URL.includes("YOUR_") && !USE_MOCK_DATA)) {
-                document.getElementById('config-alert').classList.remove('hidden');
-                showToast("請設定 GAS_API_URL", "error");
-            } else {
-                fetchData();
-            }
-        }
+        // --- Initialization ---
+        lucide.createIcons();
+        fetchAllData();
 
-        // --- DATA FETCHING ---
-        async function fetchData() {
-            const statusDot = document.getElementById('system-status-dot');
-            const statusText = document.getElementById('system-status-text');
-            
-            statusDot.className = "w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse";
-            statusText.innerText = "Fetching...";
-            
+        // --- FETCH ALL ---
+        async function fetchAllData() {
+            updateSystemStatus('Fetching Data...', 'yellow');
             try {
-                const response = await fetch(GAS_API_URL);
-                const data = await response.json();
-                
-                if(data.error) throw new Error(data.error);
-
-                // Initial Process
-                globalData = data;
-                
-                // Populate Filters First
-                populateDateFilter(globalData);
-                
-                // Process with default filters (all)
-                filterData();
-                
-                statusDot.className = "w-2 h-2 bg-green-500 rounded-full mr-2";
-                statusText.innerText = "System Online";
-                showToast("資料更新完成", "success");
+                await Promise.all([fetchSPData(), fetchExaminerData()]);
+                updateSystemStatus('System Online', 'green');
             } catch (error) {
-                console.error("Fetch Error:", error);
-                statusDot.className = "w-2 h-2 bg-red-600 rounded-full mr-2";
-                statusText.innerText = "Error";
-                showToast("讀取失敗: " + error.message, "error");
+                console.error(error);
+                updateSystemStatus('Partial Error', 'orange');
             }
         }
 
-        // --- SP NAME MAPPING GENERATOR (Prevents Mixing Surnames) ---
+        // --- SP DATA LOGIC (Restored Original) ---
+        async function fetchSPData() {
+            try {
+                const response = await fetch(SP_API_URL);
+                const data = await response.json();
+                if(data.error) throw new Error(data.error);
+                globalSpData = data;
+                populateDateFilter(globalSpData); // Original logic populates filter from SP data
+                if(currentView === 'examiner-sp-analysis') applyGlobalFilters();
+            } catch (error) {
+                console.error("SP Fetch Error:", error);
+                showToast("SP 資料讀取失敗", "error");
+            }
+        }
+
         function generateSPMap(data) {
-            const uniqueNames = [...new Set(data.map(r => r.spName || r.SPName || "未知SP"))];
             const nameMap = {};
-            const usedDisplayNames = {}; // Track frequency of "陳○明"
-
+            const usedDisplayNames = {};
+            const uniqueNames = [...new Set(data.map(r => r.spName || r.SPName || "未知SP"))];
             uniqueNames.forEach(name => {
-                if(name === "未知SP") {
-                    nameMap[name] = name;
-                    return;
-                }
-
-                let masked = "";
-                // Strategy: Mask the middle character if length > 2, else mask last
-                // 陳小明 -> 陳○明
-                // 陳明 -> 陳○
-                if (name.length <= 2) {
-                    masked = name.charAt(0) + "○";
-                } else {
-                    // Keep first and last, mask everything in between
-                    masked = name.charAt(0) + "○" + name.slice(-1);
-                }
-
-                // Collision Handling (e.g. 陳小明 & 陳大明 -> both 陳○明)
-                // If collision occurs, append a number
+                if(name === "未知SP") { nameMap[name] = name; return; }
+                let masked = (name.length <= 2) ? name.charAt(0)+"○" : name.charAt(0)+"○"+name.slice(-1);
                 if (usedDisplayNames[masked]) {
                     usedDisplayNames[masked]++;
                     masked = `${masked} (${usedDisplayNames[masked]})`;
                 } else {
                     usedDisplayNames[masked] = 1;
                 }
-
                 nameMap[name] = masked;
             });
             return nameMap;
         }
 
-        // --- FILTER LOGIC ---
-        function populateDateFilter(data) {
-            const dateSelect = document.getElementById('date-filter');
-            // Keep "All" option
-            dateSelect.innerHTML = '<option value="all">全部場次 All Sessions</option>';
-            
-            // Extract Unique Dates
-            const uniqueDates = [...new Set(data.map(item => {
-                // Handle various date formats from Sheet
-                if(!item.examDate) return "";
-                let d = item.examDate;
-                if(typeof d === 'string' && d.length > 10) d = d.substring(0, 10);
-                return d;
-            }))].filter(d => d).sort().reverse();
+        function processSPData(data) {
+            if (Object.keys(globalSpMap).length === 0) globalSpMap = generateSPMap(globalSpData);
 
-            uniqueDates.forEach(date => {
-                const option = document.createElement('option');
-                option.value = date;
-                option.textContent = date;
-                dateSelect.appendChild(option);
-            });
-        }
-
-        function updateDateOptions() {
-             // Optional: If Year is selected, filter the Date options (Advanced UX)
-             // For now, keeping it simple
-        }
-
-        function filterData() {
-            const prof = document.getElementById('profession-filter').value;
-            const year = document.getElementById('year-filter').value;
-            const date = document.getElementById('date-filter').value;
-            
-            let filtered = globalData.filter(d => {
-                // 1. Profession Filter
-                if(prof !== 'all' && !d.profession.includes(prof)) return false;
-                
-                // Date Handling
-                let dStr = d.examDate;
-                if(typeof dStr === 'string' && dStr.length > 10) dStr = dStr.substring(0, 10);
-                
-                // 2. Year Filter
-                if(year !== 'all' && (!dStr || !dStr.includes(year))) return false;
-
-                // 3. Date/Session Filter
-                if(date !== 'all' && dStr !== date) return false;
-
-                return true;
-            });
-
-            processData(filtered);
-        }
-
-        // --- DATA PROCESSING & RENDERING ---
-        function processData(data) {
-            
-            // Generate Unique Masked Names Map based on current filtered data or global?
-            // Better to generate based on GLOBAL data to maintain consistency across filters,
-            // but here we process 'data' which might be filtered.
-            // Actually, we should generate map from 'globalData' to ensure "陳○明 (1)" is always the same person.
-            // But for simplicity in this flow, we regenerate. Ideally, do it once on fetch.
-            // Let's do it on the current batch to ensure we map what we have.
-            // A better way: Generate globalSpMap once in fetchData.
-            if (Object.keys(globalSpMap).length === 0) {
-                globalSpMap = generateSPMap(globalData);
-            }
-
-            // 1. Calculate KPI Stats
             const total = data.length;
-            let totalSum = 0;
-            let q1Sum = 0;
-            let q8Sum = 0;
-            let count = 0;
-            
-            // For Radar Chart
+            let totalSum=0, q1Sum=0, q8Sum=0, count=0;
             let qSums = {q1:0, q2:0, q3:0, q4:0, q5:0, q6:0, q7:0, q8:0};
-            
-            // For Profession Bar Chart
-            let profStats = {}; 
-
-            // For SP Watchlist
+            let profStats = {};
             let spPerformance = {};
-
-            // Text Analysis Arrays
             let allComments = [];
 
             data.forEach(row => {
                 const s = row.scores || {};
+                const q1 = Number(s.q1)||0; const q2 = Number(s.q2)||0; const q3 = Number(s.q3)||0; const q4 = Number(s.q4)||0;
+                const q5 = Number(s.q5)||0; const q6 = Number(s.q6)||0; const q7 = Number(s.q7)||0; const q8 = Number(s.q8)||0;
+
+                // Invert Q2, Q3
+                let adjQ2 = (q2>0)?(6-q2):0;
+                let adjQ3 = (q3>0)?(6-q3):0;
                 
-                // Normalize scores: Q2, Q3 are reverse questions (Low is good).
-                // Q8 is NOW POSITIVE (User Request).
+                let rowAvg = (q1+adjQ2+adjQ3+q4+q5+q6+q7+q8)/8;
+                totalSum += rowAvg; count++;
+                q1Sum += q1; q8Sum += q8;
 
-                // Raw Sums
-                const q1 = s.q1||0; const q2 = s.q2||0; const q3 = s.q3||0; const q4 = s.q4||0;
-                const q5 = s.q5||0; const q6 = s.q6||0; const q7 = s.q7||0; const q8 = s.q8||0;
+                qSums.q1+=q1; qSums.q2+=adjQ2; qSums.q3+=adjQ3; qSums.q4+=q4;
+                qSums.q5+=q5; qSums.q6+=q6; qSums.q7+=q7; qSums.q8+=q8;
 
-                // For Average Total Score 
-                // We should invert neg questions for the average to make sense (Higher average = Better performance)
-                // Q2, Q3: Invert (assuming scale 1-5, inverted is 6-score)
-                let adjustedQ2 = (q2 > 0) ? (6 - q2) : 0;
-                let adjustedQ3 = (q3 > 0) ? (6 - q3) : 0;
-                
-                let rowAvg = (q1+adjustedQ2+adjustedQ3+q4+q5+q6+q7+q8)/8; 
-                totalSum += rowAvg;
-                q1Sum += q1;
-                q8Sum += q8;
-                count++;
-
-                // Radar Sums (INVERTING NEGATIVE Qs for Visualization: 6 - score)
-                qSums.q1 += q1;
-                qSums.q2 += (6 - q2); // Inverted
-                qSums.q3 += (6 - q3); // Inverted
-                qSums.q4 += q4;
-                qSums.q5 += q5;
-                qSums.q6 += q6;
-                qSums.q7 += q7;
-                qSums.q8 += q8; // POSITIVE NOW
-
-                // Profession Grouping
                 const p = row.profession || "其他";
                 if(!profStats[p]) profStats[p] = {sum:0, count:0};
-                profStats[p].sum += rowAvg; 
-                profStats[p].count += 1;
+                profStats[p].sum += rowAvg; profStats[p].count++;
 
-                // SP Performance Tracking (Using SMART MASKED Name)
                 let rawName = row.spName || row.SPName || "未知SP";
-                let spNameMasked = globalSpMap[rawName] || rawName; // Use the map!
-                
-                if(!spPerformance[spNameMasked]) spPerformance[spNameMasked] = {sum:0, count:0};
-                spPerformance[spNameMasked].sum += rowAvg;
-                spPerformance[spNameMasked].count += 1;
+                let masked = globalSpMap[rawName] || rawName;
+                if(!spPerformance[masked]) spPerformance[masked] = {sum:0, count:0};
+                spPerformance[masked].sum += rowAvg; spPerformance[masked].count++;
 
-                // Collect Comments
                 if(row.generalComment) allComments.push(row.generalComment);
             });
 
-            // Update DOM KPIs
-            document.getElementById('stat-total-records').innerText = total;
-            document.getElementById('stat-avg-score').innerText = count ? (totalSum / count).toFixed(1) : "-";
-            document.getElementById('stat-q1-score').innerText = count ? (q1Sum / count).toFixed(1) : "-";
-            document.getElementById('stat-q8-score').innerText = count ? (q8Sum / count).toFixed(1) : "-";
+            // Update DOM
+            document.getElementById('sp-stat-total').innerText = total;
+            document.getElementById('sp-stat-avg').innerText = count ? (totalSum/count).toFixed(2) : "-";
+            document.getElementById('sp-stat-q1').innerText = count ? (q1Sum/count).toFixed(2) : "-";
+            document.getElementById('sp-stat-q8').innerText = count ? (q8Sum/count).toFixed(2) : "-";
 
-            // Render Visuals
             if (total > 0) {
                 renderRadarChart(qSums, total);
                 renderProfessionChart(profStats);
-                renderInsights(qSums, total, allComments, spPerformance); // Updated with SP data
+                renderSPInsights(qSums, total, allComments, spPerformance);
             }
-
-            renderTable(data);
+            renderSPTable(data);
         }
 
-        // --- NEW: QUALITATIVE INSIGHT ENGINE ---
-        function renderInsights(qSums, total, comments, spPerformance) {
-            // 1. Keyword Cloud (Simulated NLP)
-            const stopWords = ["無", "沒有", "sp", "的", "很", "也", "了", "有", "表現", "學生", "考生", "good", "ok"];
-            let wordCounts = {};
-            
-            comments.forEach(c => {
-                const words = c.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()。，、！]/g," ").split(/\s+/);
-                words.forEach(w => {
-                    if(w.length > 1 && !stopWords.includes(w.toLowerCase())) {
-                        wordCounts[w] = (wordCounts[w] || 0) + 1;
-                    }
-                });
-            });
-
-            const sortedWords = Object.entries(wordCounts)
-                .sort((a,b) => b[1] - a[1])
-                .slice(0, 8);
-
-            const cloudContainer = document.getElementById('keyword-cloud');
-            cloudContainer.innerHTML = '';
-            sortedWords.forEach(([word, count]) => {
-                const tag = document.createElement('span');
-                const isNeg = ["小聲", "矛盾", "不自然", "過度", "差"].some(n => word.includes(n));
-                tag.className = `keyword-tag ${isNeg ? 'keyword-neg' : 'keyword-pos'}`;
-                tag.textContent = `${word} (${count})`;
-                cloudContainer.appendChild(tag);
-            });
-
-            // Recent Comments
-            const listContainer = document.getElementById('recent-comments-list');
-            listContainer.innerHTML = '';
-            comments.slice(-5).reverse().forEach(c => {
-                const div = document.createElement('div');
-                div.className = "text-xs border-b border-gray-100 pb-1 mb-1 text-gray-600";
-                div.innerText = `"${c}"`;
-                listContainer.appendChild(div);
-            });
-
-            // 2. SP Watchlist (Lowest 3)
-            const sortedSPs = Object.entries(spPerformance)
-                .map(([name, data]) => ({name, avg: data.sum/data.count, count: data.count}))
-                .sort((a,b) => a.avg - b.avg) // Ascending (Low to High)
-                .slice(0, 3); // Top 3 worst
-
-            const spListEl = document.getElementById('sp-watchlist');
-            spListEl.innerHTML = '';
-            if(sortedSPs.length > 0) {
-                sortedSPs.forEach(sp => {
-                    const li = document.createElement('li');
-                    li.className = "flex justify-between items-center text-xs";
-                    // Only flag if avg is somewhat low (e.g., < 4.0) or just show bottom rank
-                    const colorClass = sp.avg < 3.5 ? "text-red-400 font-bold" : "text-gray-300";
-                    li.innerHTML = `<span>${sp.name}</span> <span class="${colorClass}">${sp.avg.toFixed(1)} <span class="text-[10px] text-gray-500">(${sp.count}筆)</span></span>`;
-                    spListEl.appendChild(li);
-                });
-            } else {
-                spListEl.innerHTML = '<li class="text-gray-500">無足夠數據</li>';
+        // --- EXAMINER DATA LOGIC (New) ---
+        async function fetchExaminerData() {
+            try {
+                const response = await fetch(EXAMINER_API_URL);
+                const data = await response.json();
+                if(data.error) throw new Error(data.error);
+                globalExaminerData = data;
+                if(currentView === 'examiner-analysis') applyGlobalFilters();
+            } catch (error) {
+                console.error("Examiner Fetch Error:", error);
+                showToast("考官回饋讀取失敗", "error");
             }
-
-            // 3. Action Plan Logic
-            const avgs = {
-                "Q1 角色一致": qSums.q1/total,
-                "Q2 避免操弄": qSums.q2/total, 
-                "Q3 避免質疑": qSums.q3/total,
-                "Q4 身體表現": qSums.q4/total,
-                "Q5 表情眼神": qSums.q5/total,
-                "Q6 肢體動作": qSums.q6/total,
-                "Q7 回答自然": qSums.q7/total,
-                "Q8 專業態度": qSums.q8/total
-            };
-
-            let minScore = 6;
-            let weakPoint = "";
-            for (const [key, val] of Object.entries(avgs)) {
-                if(val < minScore) {
-                    minScore = val;
-                    weakPoint = key;
-                }
-            }
-
-            const actions = {
-                "Q1 角色一致": "建議加強標準化劇本的背誦與角色背景故事的內化訓練。",
-                "Q2 避免操弄": "SP 可能過度引導學生。建議舉辦工作坊，練習「被動反應」技巧。",
-                "Q3 避免質疑": "SP 對學生展現過多攻擊性。需調整角色情緒設定，強調教學目標。",
-                "Q4 身體表現": "身體症狀（如疼痛、顫抖）模擬不足。建議引入影片教學或由醫師示範。",
-                "Q5 表情眼神": "眼神接觸或痛苦表情不到位。建議安排「鏡子練習」或表演指導。",
-                "Q6 肢體動作": "肢體語言與口語不一致。需加強非語言溝通的一致性訓練。",
-                "Q7 回答自然": "回答過於生硬或像背稿。建議練習口語化表達，減少專業術語使用。",
-                "Q8 專業態度": "SP 在考試中可能出戲或未維持專業。需強調考場紀律與角色沉浸感。"
-            };
-
-            const suggestion = actions[weakPoint] || "目前各面向表現良好，請持續保持。";
-
-            document.getElementById('action-priority').innerText = weakPoint + ` (Score: ${minScore.toFixed(1)})`;
-            document.getElementById('action-priority').className = "text-lg font-bold text-[#D03328]";
-            document.getElementById('action-suggestion').innerText = suggestion;
         }
 
-        // --- CHARTS ---
+        function processExaminerData(data) {
+            const total = data.length;
+            let qSums = Array(8).fill(0);
+            let stationStats = {};
+            let allComments = [];
+
+            data.forEach(row => {
+                // Parse scores Q1-Q8
+                const scores = [row.q1, row.q2, row.q3, row.q4, row.q5, row.q6, row.q7, row.q8].map(v => Number(v)||0);
+                scores.forEach((v, i) => qSums[i] += v);
+
+                // Station stats
+                const st = row.stationNumber || "Unk";
+                if(!stationStats[st]) stationStats[st] = {sum:0, count:0};
+                let rowAvg = scores.reduce((a,b)=>a+b,0)/8;
+                stationStats[st].sum += rowAvg;
+                stationStats[st].count++;
+
+                // Collect qualitative
+                if(row.q9) allComments.push(row.q9); // 考題建議
+                if(row.q10) allComments.push(row.q10); // 整體建議
+            });
+
+            const qAvgs = qSums.map(s => total > 0 ? (s/total).toFixed(2) : 0);
+            const totalAvg = total > 0 ? (qSums.reduce((a,b)=>a+b,0) / (total * 8)).toFixed(2) : 0;
+
+             // Find Lowest Dimension
+            const qLabels = ["Q1 測驗內容", "Q2 評核項目", "Q3 評分說明", "Q4 試題指引", "Q5 測驗時間", "Q6 動線規劃", "Q7 廣播鈴聲", "Q8 試務流程"];
+            let minVal = 6, minIdx = -1;
+            qAvgs.forEach((v, i) => { if(Number(v) < minVal && Number(v) > 0) { minVal = Number(v); minIdx = i; }});
+            const lowestDim = minIdx >= 0 ? qLabels[minIdx] : "無資料";
+
+            // Update DOM
+            document.getElementById('ex-stat-count').innerText = total;
+            document.getElementById('ex-stat-avg').innerText = totalAvg;
+            document.getElementById('ex-stat-low').innerText = lowestDim;
+
+            // Render
+            if(total > 0) {
+                renderExaminerCharts(qLabels, qAvgs, stationStats);
+                renderExaminerInsights(qAvgs, allComments, lowestDim, minIdx);
+            }
+            renderExaminerTable(data);
+        }
+
+        // --- RENDER FUNCTIONS (Charts & Insights) ---
+        
         function renderRadarChart(qSums, total) {
-            const ctx = document.getElementById('chart-radar').getContext('2d');
-            const avgs = [
-                qSums.q1/total, qSums.q2/total, qSums.q3/total, qSums.q4/total,
-                qSums.q5/total, qSums.q6/total, qSums.q7/total, qSums.q8/total
-            ];
-            
-            const labels = [
-                "Q1 角色一致", 
-                "Q2 避免操弄", 
-                "Q3 避免質疑", 
-                "Q4 身體表現", 
-                "Q5 表情與眼神", 
-                "Q6 肢體動作", 
-                "Q7 回答自然度", 
-                "Q8 專業態度"
-            ];
-
-            if(radarChartInstance) radarChartInstance.destroy();
-
-            radarChartInstance = new Chart(ctx, {
+            // SP Radar
+            const ctx = document.getElementById('chart-sp-radar').getContext('2d');
+            const data = [qSums.q1, qSums.q2, qSums.q3, qSums.q4, qSums.q5, qSums.q6, qSums.q7, qSums.q8].map(s => s/total);
+            if(charts.spRadar) charts.spRadar.destroy();
+            charts.spRadar = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '平均得分 (Q2,Q3已反向校正)',
-                        data: avgs,
-                        backgroundColor: 'rgba(234, 185, 54, 0.5)', 
-                        borderColor: '#EAB936',
-                        pointBackgroundColor: '#1A1A1A',
-                        pointBorderColor: '#fff',
-                        borderWidth: 3,
-                        pointRadius: 4
-                    }]
+                    labels: ["Q1一致", "Q2無操弄", "Q3無質疑", "Q4真實", "Q5表情", "Q6肢體", "Q7自然", "Q8專業"],
+                    datasets: [{ label: 'Score', data: data, backgroundColor: 'rgba(234, 185, 54, 0.5)', borderColor: '#EAB936', borderWidth: 2 }]
                 },
-                options: {
-                    scales: {
-                        r: {
-                            min: 1, 
-                            max: 5,
-                            ticks: { stepSize: 1, backdropColor: 'transparent', font: {size: 10} },
-                            grid: { color: '#ddd', circular: true },
-                            pointLabels: { 
-                                font: { size: 12, weight: 'bold', family: "'Noto Sans TC', sans-serif" },
-                                color: '#1A1A1A'
-                            }
-                        }
-                    },
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
+                options: { scales: { r: { min: 3, max: 5 } }, maintainAspectRatio: false }
             });
         }
 
-        function renderProfessionChart(profStats) {
-            const ctx = document.getElementById('chart-profession').getContext('2d');
-            const labels = Object.keys(profStats);
-            const data = labels.map(k => (profStats[k].sum / profStats[k].count).toFixed(2));
+        function renderProfessionChart(stats) {
+            const ctx = document.getElementById('chart-sp-bar').getContext('2d');
+            const labels = Object.keys(stats);
+            const data = labels.map(k => stats[k].sum/stats[k].count);
+            if(charts.spBar) charts.spBar.destroy();
+            charts.spBar = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Score', data, backgroundColor: '#1C4E8C' }] },
+                options: { scales: { y: { min: 3, max: 5 } }, maintainAspectRatio: false }
+            });
+        }
 
-            if(barChartInstance) barChartInstance.destroy();
-
-            barChartInstance = new Chart(ctx, {
+        function renderExaminerCharts(labels, data, stationStats) {
+            // Examiner Bar (Questions)
+            const ctxQ = document.getElementById('chart-ex-questions').getContext('2d');
+            if(charts.exQ) charts.exQ.destroy();
+            charts.exQ = new Chart(ctxQ, {
                 type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: '平均評分',
-                        data: data,
-                        backgroundColor: '#1C4E8C',
-                        borderWidth: 2,
-                        borderColor: '#1A1A1A',
-                        barThickness: 40
-                    }]
+                    datasets: [{ label: '滿意度', data: data, backgroundColor: data.map(v=>v<4?'#D03328':'#1C4E8C') }]
                 },
-                options: {
-                    scales: {
-                        y: { min: 0, max: 5, grid: {color:'#eee'} },
-                        x: { grid: {display:false} }
-                    },
-                    maintainAspectRatio: false,
-                    plugins: { legend: {display:false} }
-                }
+                options: { indexAxis: 'y', scales: { x: { min: 3, max: 5 } }, maintainAspectRatio: false }
+            });
+
+            // Examiner Bar (Stations)
+            const stLabels = Object.keys(stationStats).sort((a,b)=>Number(a)-Number(b));
+            const stData = stLabels.map(k => stationStats[k].sum/stationStats[k].count);
+            const ctxS = document.getElementById('chart-ex-stations').getContext('2d');
+            if(charts.exS) charts.exS.destroy();
+            charts.exS = new Chart(ctxS, {
+                type: 'bar',
+                data: { labels: stLabels.map(s=>`第${s}站`), datasets: [{ label: '滿意度', data: stData, backgroundColor: '#EAB936' }] },
+                options: { scales: { y: { min: 3, max: 5 } }, maintainAspectRatio: false }
             });
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('table-comments-body');
-            tbody.innerHTML = '';
-            
-            // Limit to 50 rows for performance
-            data.slice(0, 50).forEach(row => {
-                let dateStr = row.examDate;
-                if (dateStr && dateStr.length > 10) dateStr = dateStr.substring(0, 10);
-                
-                // SP Name Masking logic in table using the global MAP
-                const rawName = row.spName || row.SPName || "未知SP";
-                const maskedSP = globalSpMap[rawName] || rawName;
+        // --- INSIGHT ENGINES ---
 
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-200 hover:bg-gray-50 text-xs";
-                
-                const scoreCell = (val, isNeg) => {
-                    let color = "text-gray-600";
-                    if(isNeg) { if(val>=4) color="text-red-600 font-bold"; }
-                    else { if(val<=2) color="text-red-600 font-bold"; }
-                    return `<td class="p-3 ${color}">${val||'-'}</td>`;
-                };
-
-                const s = row.scores || {};
-
-                tr.innerHTML = `
-                    <td class="p-3 font-mono">${dateStr}</td>
-                    <td class="p-3 font-bold text-[#1C4E8C]">${maskedSP}</td>
-                    <td class="p-3">${row.examinerName || '-'}</td>
-                    <td class="p-3 font-bold">${row.stationNumber}</td>
-                    <td class="p-3"><span class="bg-gray-100 px-2 py-1 rounded">${row.profession}</span></td>
-                    ${scoreCell(s.q1, false)}
-                    ${scoreCell(s.q2, true)}
-                    ${scoreCell(s.q3, true)}
-                    ${scoreCell(s.q4, false)}
-                    ${scoreCell(s.q5, false)}
-                    ${scoreCell(s.q6, false)}
-                    ${scoreCell(s.q7, false)}
-                    ${scoreCell(s.q8, false)}
-                    <td class="p-3 text-gray-500 truncate max-w-[200px]" title="${row.generalComment}">${row.generalComment || '-'}</td>
-                `;
-                tbody.appendChild(tr);
+        // 1. SP Insight Engine (Original Logic)
+        function renderSPInsights(qSums, total, comments, spPerformance) {
+            // Keywords
+            const stopWords = ["無", "沒有", "sp", "的", "很", "表現", "學生", "good", "ok"];
+            let wordCounts = {};
+            comments.forEach(c => {
+                c.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()。，、！]/g," ").split(/\s+/).forEach(w => {
+                    if(w.length > 1 && !stopWords.includes(w.toLowerCase())) wordCounts[w] = (wordCounts[w]||0)+1;
+                });
             });
+            const sortedWords = Object.entries(wordCounts).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+            
+            const cloud = document.getElementById('sp-keyword-cloud');
+            cloud.innerHTML = '';
+            sortedWords.forEach(([w, c]) => {
+                const isNeg = ["小聲","矛盾","過度","差"].some(n=>w.includes(n));
+                cloud.innerHTML += `<span class="keyword-tag ${isNeg?'keyword-neg':'keyword-pos'}">${w}(${c})</span>`;
+            });
+
+            // Comments List
+            document.getElementById('sp-comments-list').innerHTML = comments.slice(-5).reverse().map(c=>`<div class="text-xs border-b pb-1 mb-1 text-gray-600">"${c}"</div>`).join('');
+
+            // Watchlist
+            const watchlist = Object.entries(spPerformance).map(([n, d])=>({name:n, avg:d.sum/d.count, count:d.count})).sort((a,b)=>a.avg-b.avg).slice(0,3);
+            document.getElementById('sp-watchlist').innerHTML = watchlist.map(s=>`<li class="flex justify-between text-xs text-gray-300"><span>${s.name}</span><span class="${s.avg<4?'text-red-400':''}">${s.avg.toFixed(1)}</span></li>`).join('');
+
+            // Action
+            const labels = ["Q1 角色一致", "Q2 避免操弄", "Q3 避免質疑", "Q4 身體表現", "Q5 表情眼神", "Q6 肢體動作", "Q7 回答自然", "Q8 專業態度"];
+            const scores = [qSums.q1, qSums.q2, qSums.q3, qSums.q4, qSums.q5, qSums.q6, qSums.q7, qSums.q8].map(s=>s/total);
+            let minS = 6, minI = -1;
+            scores.forEach((s,i)=>{if(s<minS){minS=s; minI=i}});
+            
+            const actions = {
+                0: "建議加強標準化劇本的背誦與角色背景故事的內化訓練。",
+                1: "SP 可能過度引導學生。建議舉辦工作坊，練習「被動反應」技巧。",
+                2: "SP 對學生展現過多攻擊性。需調整角色情緒設定，強調教學目標。",
+                3: "身體症狀（如疼痛）模擬不足。建議引入影片教學或由醫師示範。",
+                4: "眼神接觸或表情不到位。建議安排「鏡子練習」或表演指導。",
+                5: "肢體語言與口語不一致。需加強非語言溝通的一致性訓練。",
+                6: "回答過於生硬。建議練習口語化表達，減少專業術語使用。",
+                7: "需強調考場紀律與角色沉浸感，避免考場內閒聊。"
+            };
+            document.getElementById('sp-action-priority').innerText = labels[minI] || "無";
+            document.getElementById('sp-action-suggestion').innerText = actions[minI] || "表現良好，持續保持。";
         }
 
-        // --- UTILS ---
-        function switchView(viewName) {
-            const views = ['dashboard', 'examiner-sp-analysis'];
-            views.forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-                document.getElementById(`view-${v}`).classList.remove('block');
-                
-                const nav = document.getElementById(`nav-${v}`);
-                if(nav) {
-                    nav.classList.remove('active', 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]', 'transform', '-translate-y-1');
-                    nav.classList.add('opacity-70', 'border-transparent');
-                }
+        // 2. Examiner Insight Engine (NEW)
+        function renderExaminerInsights(qAvgs, comments, lowestDim, lowestIdx) {
+            // Keywords
+            const stopWords = ["無", "沒有", "建議", "考題", "的", "覺得", "尚可", "良好", "ok", "good"];
+            let wordCounts = {};
+            comments.forEach(c => {
+                 // Ensure c is a string
+                String(c).replace(/[.,\/#!$%\^&\*;:{}=\-_`~()。，、！]/g," ").split(/\s+/).forEach(w => {
+                    if(w.length > 1 && !stopWords.includes(w.toLowerCase())) wordCounts[w] = (wordCounts[w]||0)+1;
+                });
+            });
+            const sortedWords = Object.entries(wordCounts).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+            
+            const cloud = document.getElementById('ex-keyword-cloud');
+            cloud.innerHTML = '';
+            if(sortedWords.length === 0) cloud.innerHTML = '<span class="text-gray-400 text-xs">無足夠關鍵字</span>';
+            sortedWords.forEach(([w, c]) => {
+                const isNeg = ["不足","太短","吵","動線","難"].some(n=>w.includes(n));
+                cloud.innerHTML += `<span class="keyword-tag ${isNeg?'keyword-neg':'keyword-pos'}">${w}(${c})</span>`;
             });
 
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            document.getElementById(`view-${viewName}`).classList.add('block');
-            
-            const activeNav = document.getElementById(`nav-${viewName}`);
-            if(activeNav) {
-                activeNav.classList.add('active', 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]', 'transform', '-translate-y-1');
-                activeNav.classList.remove('opacity-70', 'border-transparent');
+            // Comments List
+            const listEl = document.getElementById('ex-comments-list');
+            listEl.innerHTML = '';
+            const validComments = comments.filter(c => c && String(c).trim() !== "");
+            if(validComments.length === 0) listEl.innerHTML = '<div class="text-xs text-gray-400">無文字回饋</div>';
+            else {
+                validComments.slice(-5).reverse().forEach(c => {
+                    listEl.innerHTML += `<div class="text-xs border-b pb-1 mb-1 text-gray-600">"${c}"</div>`;
+                });
             }
+
+            // Action Plan
+            document.getElementById('ex-action-priority').innerText = lowestDim + (lowestIdx >= 0 ? ` (${qAvgs[lowestIdx]})` : "");
+            
+            const actions = {
+                0: "建議重新審視考題鑑別度與難易度分佈，或召開共識會議調整評分標準。",
+                1: "評分項目可能過於繁瑣或模糊，建議簡化評核表或具體化行為指標。",
+                2: "評分說明可能不夠明確，建議在考官共識營中加強說明或提供範例影片。",
+                3: "試題指引資訊可能不足，建議增加考生端或考官端的背景資訊說明。",
+                4: "測驗時間安排可能過於緊湊，建議檢視考題份量或考慮調整考試時間。",
+                5: "動線規劃可能有改進空間，建議檢視考場標示或人員引導配置。",
+                6: "廣播或鈴聲系統可能有干擾，建議檢查硬體設備或調整音量設定。",
+                7: "試務流程有優化空間，建議加強試務人員培訓或標準化作業程序。"
+            };
+            document.getElementById('ex-action-suggestion').innerText = actions[lowestIdx] || "目前各面向滿意度良好，請持續保持。";
+        }
+
+        // --- TABLES ---
+        function renderSPTable(data) {
+            const tbody = document.getElementById('sp-table-body');
+            tbody.innerHTML = data.slice(0,50).map(r => {
+                let s = r.scores||{};
+                let rawName = r.spName || r.SPName || "未知SP";
+                let masked = globalSpMap[rawName] || rawName;
+                let scoresStr = [s.q1, s.q2, s.q3, s.q4, s.q5, s.q6, s.q7, s.q8].join(',');
+                return `<tr class="border-b text-xs hover:bg-gray-50">
+                    <td class="p-2">${(r.examDate||'').substring(0,10)}</td>
+                    <td class="p-2 text-[#1C4E8C] font-bold">${masked}</td>
+                    <td class="p-2">${r.examinerName||'-'}</td>
+                    <td class="p-2 font-bold">${r.stationNumber}</td>
+                    <td class="p-2 font-mono text-gray-500">${scoresStr}</td>
+                    <td class="p-2 truncate max-w-[150px]">${r.generalComment||'-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderExaminerTable(data) {
+            const tbody = document.getElementById('ex-table-body');
+            tbody.innerHTML = data.slice(0,50).map(r => {
+                let scoresStr = [r.q1, r.q2, r.q3, r.q4, r.q5, r.q6, r.q7, r.q8].join(',');
+                return `<tr class="border-b text-xs hover:bg-gray-50">
+                    <td class="p-2">${(r.date||r.examDate||'').substring(0,10)}</td>
+                    <td class="p-2 font-bold">${r.examinerName||'-'}</td>
+                    <td class="p-2 font-bold">${r.stationNumber}</td>
+                    <td class="p-2 font-mono text-gray-500">${scoresStr}</td>
+                    <td class="p-2 truncate max-w-[150px]">${r.q9||'-'}</td>
+                    <td class="p-2 truncate max-w-[150px]">${r.q10||'-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // --- SHARED UTILS ---
+        function populateDateFilter(data) {
+            const sel = document.getElementById('date-filter');
+            sel.innerHTML = '<option value="all">全部場次 All</option>';
+            [...new Set(data.map(d=>(d.examDate||'').substring(0,10)))].filter(Boolean).sort().reverse().forEach(d=>{
+                sel.innerHTML+=`<option value="${d}">${d}</option>`;
+            });
+        }
+
+        function applyGlobalFilters() {
+            // Apply to SP
+            const year = document.getElementById('year-filter').value;
+            const date = document.getElementById('date-filter').value;
+            const prof = document.getElementById('profession-filter').value;
+
+            // Filter SP Data
+            let filteredSP = globalSpData.filter(d => {
+                 let dStr = (d.examDate||'').substring(0,10);
+                 if(year!=='all' && !dStr.includes(year)) return false;
+                 if(date!=='all' && dStr!==date) return false;
+                 if(prof!=='all' && d.profession!==prof) return false;
+                 return true;
+            });
+            processSPData(filteredSP);
+
+            // Filter Examiner Data
+            let filteredEx = globalExaminerData.filter(d => {
+                let dStr = (d.date||d.examDate||'').substring(0,10);
+                if(year!=='all' && !dStr.includes(year)) return false;
+                if(date!=='all' && dStr!==date) return false;
+                // Profession filter NA for examiner sheet usually, but we keep logic clean
+                return true; 
+            });
+            processExaminerData(filteredEx);
+        }
+
+        function switchView(v) {
+            currentView = v;
+            ['dashboard','examiner-sp-analysis','examiner-analysis','student-analysis','sp-analysis'].forEach(id=>{
+                document.getElementById('view-'+id).classList.add('hidden');
+                document.getElementById('view-'+id).classList.remove('block');
+                const nav = document.getElementById('nav-'+id);
+                if(nav) { nav.classList.remove('active'); nav.classList.add('opacity-70', 'border-transparent'); }
+            });
+            document.getElementById('view-'+v).classList.remove('hidden');
+            document.getElementById('view-'+v).classList.add('block');
+            const active = document.getElementById('nav-'+v);
+            if(active) { active.classList.add('active'); active.classList.remove('opacity-70', 'border-transparent'); }
+            
+            if(v === 'examiner-sp-analysis' || v === 'examiner-analysis') applyGlobalFilters();
+
+            // Toggle Profession Filter Visibility (Only relevant for SP)
+            const profFilter = document.getElementById('prof-filter-container');
+            if(v === 'examiner-sp-analysis') profFilter.classList.remove('hidden');
+            else profFilter.classList.add('hidden');
 
             if(window.innerWidth < 768) toggleSidebar();
         }
 
-        function showToast(msg, type) {
-            const modal = document.getElementById('modal-message');
-            modal.innerText = msg;
+        function updateSystemStatus(msg, color) {
+            const d = document.getElementById('system-status-dot');
+            const t = document.getElementById('system-status-text');
+            d.className = `w-2 h-2 rounded-full mr-2 bg-${color==='yellow'?'yellow-500':color==='green'?'green-500':'red-600'} ${color==='yellow'?'animate-pulse':''}`;
+            t.innerText = msg;
+        }
+
+        function updateDateOptions() { /* Placeholder */ }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden'); }
+        function closeModal() { document.getElementById('modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(()=>document.getElementById('modal-overlay').classList.add('hidden'), 200); }
+        function showToast(msg, type) { 
+            document.getElementById('modal-message').innerText = msg;
             if(type==='error') {
                  document.getElementById('modal-overlay').classList.remove('hidden');
-                 setTimeout(() => {
-                    document.getElementById('modal-content').classList.remove('scale-95', 'opacity-0');
-                    document.getElementById('modal-content').classList.add('scale-100', 'opacity-100');
-                 }, 10);
+                 setTimeout(() => { document.getElementById('modal-content').classList.remove('scale-95', 'opacity-0'); document.getElementById('modal-content').classList.add('scale-100', 'opacity-100'); }, 10);
             }
         }
-
-        function closeModal() {
-             const content = document.getElementById('modal-content');
-             content.classList.remove('scale-100', 'opacity-100');
-             content.classList.add('scale-95', 'opacity-0');
-             setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 200);
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('sidebar-overlay').classList.toggle('hidden');
-        }
-
-        function exportCSV() {
-            let csv = "日期,SP姓名,考官,站號,職類,評語\n";
-            globalData.forEach(row => {
-                const rawName = row.spName || row.SPName || "未知SP";
-                const sp = globalSpMap[rawName] || rawName;
-                csv += `${row.examDate},${sp},${row.examinerName},${row.stationNumber},${row.profession},"${(row.generalComment||'').replace(/"/g, '""')}"\n`;
-            });
+        function exportCSV(type) {
+            let csv = "";
+            if(type==='sp') {
+                csv = "日期,SP姓名,考官,站號,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,評語\n";
+                globalSpData.forEach(r => {
+                    let s = r.scores||{};
+                    let name = globalSpMap[r.spName||r.SPName||"未知"] || r.spName;
+                    csv += `${(r.examDate||'').substring(0,10)},${name},${r.examinerName},${r.stationNumber},${s.q1},${s.q2},${s.q3},${s.q4},${s.q5},${s.q6},${s.q7},${s.q8},"${(r.generalComment||'').replace(/"/g,'""')}"\n`;
+                });
+            } else {
+                csv = "日期,考官,站號,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,考題建議,整體建議\n";
+                globalExaminerData.forEach(r => {
+                    csv += `${(r.date||'').substring(0,10)},${r.examinerName},${r.stationNumber},${r.q1},${r.q2},${r.q3},${r.q4},${r.q5},${r.q6},${r.q7},${r.q8},"${(r.q9||'').replace(/"/g,'""')}","${(r.q10||'').replace(/"/g,'""')}"\n`;
+                });
+            }
             const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "osce_data.csv";
+            link.download = `osce_${type}_data.csv`;
             link.click();
         }
     </script>
