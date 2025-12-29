@@ -1,0 +1,18 @@
+{
+  "name": "chimeiosce-dashboard",
+  "version": "1.0.0",
+  "description": "奇美醫院臨床技能中心OSCE問卷滿意度成效儀表板",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "terser-webpack-plugin": "^5.3.9"
+  },
+  "keywords": ["dashboard", "osce", "healthcare"],
+  "author": "",
+  "license": "ISC"
+}
